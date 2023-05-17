@@ -24,6 +24,7 @@ env:
   DEPLOYMENT_NAME: gke-server
   REPOSITORY: www-server
   IMAGE: static-site
+  DOCKER_BUILDKIT: 1
 
 jobs:
   setup-build-publish-deploy:
