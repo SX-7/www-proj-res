@@ -18,3 +18,8 @@ spec:
       containers:
       - name: "sample-name-1"
         image: "LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE@DIGEST"
+        ports:
+        - containerPort: 8080
+        env:
+          - name: PORT
+            value: "8080"
