@@ -17,4 +17,4 @@ spec:
     spec:
       containers:
       - name: "sample-name-1"
-        image: "europe-west4-docker.pkg.dev/www-server-resume-1/www-server/sample-name:latest"
+        image: "LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE@DIGEST"
