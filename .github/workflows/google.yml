@@ -22,8 +22,8 @@ env:
   GKE_CLUSTER: autopilot-cluster-1
   GKE_ZONE: europe-west4-a
   DEPLOYMENT_NAME: gke-server
-  REPOSITORY: www-server-resume-1
-  IMAGE: www-server
+  REPOSITORY: www-server
+  IMAGE: sample-name
   DOCKER_BUILDKIT: 1
 
 jobs:
