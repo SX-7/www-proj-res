@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: hello-app
-        image: eu-west4-docker.pkg.dev/www-server-resume-1/hello-repo/helloworld-gke:latest
+        image: eu-west4-docker.pkg.dev/www-server-resume-1/www-server/sample-name:latest
         # This app listens on port 8080 for web traffic by default.
         ports:
         - containerPort: 8080
