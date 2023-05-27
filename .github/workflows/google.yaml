@@ -30,7 +30,7 @@ jobs:
       uses: 'google-github-actions/deploy-appengine@v1'
       with:
         project_id: ${{ env.PROJECT_ID }}
-        deliverables: deliverables/app.yml
+        working_directory: app
     
     - name: Check deployment status
       run: echo ${{ steps.deploy.outputs.serving_status }}

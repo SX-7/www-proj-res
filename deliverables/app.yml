@@ -1,2 +1,0 @@
-runtime: python311
-entrypoint: gunicorn --bind :$PORT main:app --chdir app
