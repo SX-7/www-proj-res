@@ -36,4 +36,4 @@ jobs:
       run: echo ${{ steps.deploy.outputs.serving_status }}
 
     - name: Test
-      run: curl ${{ steps.deploy.outputs.version_id }}
+      run: curl ${{ steps.deploy.outputs.version_url }}
