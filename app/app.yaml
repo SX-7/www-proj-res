@@ -1,2 +1,2 @@
 runtime: python311
-entrypoint: gunicorn --bind :$PORT main:app
+entrypoint: gunicorn -w 2 --bind :$PORT main:app
