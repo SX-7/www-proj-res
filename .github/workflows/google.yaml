@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+
+jobs:
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Authenticate with Google Cloud
+      id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+    - name: Deploy to App Engine
+      id: 'deploy'
+      uses: 'google-github-actions/deploy-appengine@v1'
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+    
+    - name: Check deployment status
+      run: echo ${{ steps.deploy.outputs.serving_status }}
+
+    - name: Test
+      run: curl ${{ steps.deploy.outputs.version_id }}
