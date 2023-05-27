@@ -1,0 +1,1 @@
+entrypoint: gunicorn --bind :$PORT main:app --chdir app
