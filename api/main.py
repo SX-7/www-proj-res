@@ -9,6 +9,7 @@ def get_sentiments():
     kind = "Sentiment"
     query = datastore_client.query(kind=kind)
     data = list(query.fetch())
+    print("Returned query count is: " + len(data))
     return jsonify([{
          "key_id":entity.id(),
          "content":entity["content"],
