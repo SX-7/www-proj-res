@@ -1,3 +1,7 @@
 runtime: python311
 service: api
+instance_class: B1
 entrypoint: gunicorn -w 2 --bind :$PORT main:app
+basic_scaling:
+  max_instances: 5
+  idle_timeout: 5m
