@@ -8,10 +8,12 @@ env:
 
 jobs:
   deploy:
+    name: Checkout, connect to GCl, Deploy and Check status, Remove old versions
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
+    
 
     steps:
     - name: Checkout
@@ -25,18 +27,35 @@ jobs:
         workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-    - name: Deploy to App Engine
-      id: 'deploy'
+    - name: Deploy API to App Engine
+      id: 'deploy_api'
+      uses: 'google-github-actions/deploy-appengine@v1'
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        working_directory: ./api
+        deliverables: api.yaml
+
+    - name: Check API deployment status
+      run: echo ${{ steps.deploy_api.outputs.serving_status }}
+
+    - name: Deploy app to App Engine
+      id: 'deploy_app'
       uses: 'google-github-actions/deploy-appengine@v1'
       with:
         project_id: ${{ env.PROJECT_ID }}
         working_directory: ./app
+        deliverables:
+          app.yaml
+          ../dispatch.yaml
     
-    - name: Check deployment status
-      run: echo ${{ steps.deploy.outputs.serving_status }}
+    - name: Check app deployment status
+      run: echo ${{ steps.deploy_app.outputs.serving_status }}
 
     - name: Test
-      run: curl ${{ steps.deploy.outputs.version_url }}
+      run: curl ${{ steps.deploy_app.outputs.version_url }}
 
-    - name: Remove old versions
+    - name: Remove old API versions
+      run: for version in $(gcloud app versions list --service api --sort-by '~VERSION.ID' --format 'value(VERSION.ID)' | sed 1,5d); do gcloud app versions delete "$version" --service api --quiet; done
+
+    - name: Remove old app versions
       run: for version in $(gcloud app versions list --service default --sort-by '~VERSION.ID' --format 'value(VERSION.ID)' | sed 1,5d); do gcloud app versions delete "$version" --service default --quiet; done
