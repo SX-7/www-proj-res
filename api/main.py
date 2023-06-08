@@ -59,7 +59,7 @@ def sample_analyze_sentiment():
 
 @app.route('/api', methods=['DELETE'])
 def delete_sentiment_entry():
-    record_id = request.get_json
+    record_id = request.get_json()
     if "record_id" in record_id:
         record_id = record_id["record_id"]
     else:
