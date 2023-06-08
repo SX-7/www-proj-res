@@ -9,8 +9,12 @@ def get_sentiments():
     kind = "Sentiment"
     name = "sample1"
     data_key = datastore_client.key(kind, name)
-    data = {datastore_client.get(data_key)}
-    return jsonify(data)
+    data = datastore_client.get(data_key)
+    return jsonify({
+         "content":data["content"],
+         "score":data["score"],
+         "magnitude":data["magnitude"],
+    })
 
 @app.route('/api', methods=["POST"])
 def sample_analyze_sentiment():
