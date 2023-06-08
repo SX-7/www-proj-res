@@ -33,7 +33,7 @@ def sample_analyze_sentiment():
 
     response = client.analyze_sentiment(request={"document": document})
     sentiment = response.document_sentiment
-    
+
     tests.append({"content":content,"score":sentiment.score,"magnitude":sentiment.magnitude})
     return '', 204
 
