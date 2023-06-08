@@ -11,7 +11,7 @@ def get_sentiments():
     data = list(query.fetch())
     print("Returned query count is: " + str(len(data)))
     return jsonify([{
-         "key_id":entity.id(),
+         "key_id":entity.id,
          "content":entity["content"],
          "score":entity["score"],
          "magnitude":entity["magnitude"],
