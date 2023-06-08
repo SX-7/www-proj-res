@@ -1,21 +1,20 @@
 import os
 from flask import Flask, jsonify, request
-from google.cloud import language_v1
+from google.cloud import language_v1, datastore
 app = Flask(__name__)
 
-tests = [
-      {
-            "content": "test"
-      }
-]
-
 @app.route('/api')
-def hello():
-	return jsonify(tests)
+def get_sentiments():
+    datastore_client = datastore.Client()
+    kind = "Sentiment"
+    name = "sample1"
+    data_key = datastore_client.key(kind, name)
+    data = {datastore_client.get(data_key)}
+    return jsonify(data)
 
 @app.route('/api', methods=["POST"])
 def sample_analyze_sentiment():
-
+    # analyze content
     client = language_v1.LanguageServiceClient()
 
     content = request.get_json()
@@ -34,7 +33,24 @@ def sample_analyze_sentiment():
     response = client.analyze_sentiment(request={"document": document})
     sentiment = response.document_sentiment
 
-    tests.append({"content":content,"score":sentiment.score,"magnitude":sentiment.magnitude})
+    # Instantiates a client
+    datastore_client = datastore.Client()
+
+    # The kind for the new entity
+    kind = "Sentiment"
+    # The name/ID for the new entity
+    name = "sample1"
+    # The Cloud Datastore key for the new entity
+    entity_key = datastore_client.key(kind, name)
+
+    # Prepares the new entity
+    entity = datastore.Entity(key=entity_key)
+    entity["content"] = content
+    entity["score"] = sentiment.score
+    entity["magnitude"] = sentiment.magnitude
+
+    # Saves the entity
+    datastore_client.put(entity)
     return '', 204
 
 if __name__ == '__main__':
