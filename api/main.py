@@ -7,14 +7,14 @@ app = Flask(__name__)
 def get_sentiments():
     datastore_client = datastore.Client()
     kind = "Sentiment"
-    name = "sample1"
-    data_key = datastore_client.key(kind, name)
-    data = datastore_client.get(data_key)
-    return jsonify({
-         "content":data["content"],
-         "score":data["score"],
-         "magnitude":data["magnitude"],
-    })
+    query = datastore_client.query(kind=kind)
+    data = list(query.fetch())
+    return jsonify([{
+         "key_id":entity.id(),
+         "content":entity["content"],
+         "score":entity["score"],
+         "magnitude":entity["magnitude"],
+    } for entity in data])
 
 @app.route('/api', methods=["POST"])
 def sample_analyze_sentiment():
@@ -42,10 +42,8 @@ def sample_analyze_sentiment():
 
     # The kind for the new entity
     kind = "Sentiment"
-    # The name/ID for the new entity
-    name = "sample1"
     # The Cloud Datastore key for the new entity
-    entity_key = datastore_client.key(kind, name)
+    entity_key = datastore_client.key(kind)
 
     # Prepares the new entity
     entity = datastore.Entity(key=entity_key)
