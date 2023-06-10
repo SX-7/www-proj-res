@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
-# addendum: modify to disallow external connections
+# addendum: modify to disallow external connections, https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/refresh_token")
 def refresh_token():
     # here we basically wanna implement the entirety of token scrapper
