@@ -86,7 +86,7 @@ def get_token():
 @app.route("/api/mock")
 def get_some_wykop_data():
     
-    api_token = json.loads(get_token().get_json(force=True))[0]["api_token"]
+    api_token = json.loads(get_token().get_json(force=True)[0]["api_token"])
     request.get("https://api-dot-www-server-resume-1.ew.r.appspot.com/")
     wykop_data = requests.get(
         'https://wykop.pl/api/v3/tags/polska/stream?page=2&limit=20&sort=all',
