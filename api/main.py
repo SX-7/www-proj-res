@@ -93,6 +93,7 @@ def get_some_wykop_data():
     # JIC
     if isinstance(page, bytes):
         page = page.decode("utf-8")
+    
     api_token = get_token().get_json(force=True)
     request.get("https://api-dot-www-server-resume-1.ew.r.appspot.com/")
     wykop_data = requests.get(
@@ -102,7 +103,7 @@ def get_some_wykop_data():
             "authorization": f"Bearer {api_token}",
         },
     )
-    return wykop_data.json()
+    return jsonify(wykop_data.content)
 
 @app.route("/api/ai")
 def get_sentiments():
