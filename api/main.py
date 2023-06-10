@@ -94,7 +94,7 @@ def get_some_wykop_data():
             "authorization": f"Bearer {api_token}",
         },
     )
-    return jsonify(wykop_data.content)
+    return jsonify(wykop_data.content.decode("utf-8"))
 
 @app.route("/api/ai")
 def get_sentiments():
