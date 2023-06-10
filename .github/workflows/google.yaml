@@ -33,7 +33,9 @@ jobs:
       with:
         project_id: ${{ env.PROJECT_ID }}
         working_directory: ./api
-        deliverables: api.yaml
+        deliverables: 
+          api.yaml
+          cron.yaml
 
     - name: Check API deployment status
       run: echo ${{ steps.deploy_api.outputs.serving_status }}
