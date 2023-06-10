@@ -13,7 +13,8 @@ app = Flask(__name__)
 
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
-# addendum: modify to disallow external connections, https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
+# addendum: modify to disallow external connections after testing is done
+# https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/token/refresh")
 def refresh_token():
     # here we basically wanna implement the entirety of token scrapper
@@ -84,17 +85,8 @@ def get_token():
 
 @app.route("/api/mock")
 def get_some_wykop_data():
-    # parse ?-args
-    details = request.get_json()
     
-    page = 1
-    if "page" in details:
-        page = details["page"]
-    # JIC
-    if isinstance(page, bytes):
-        page = page.decode("utf-8")
-    
-    api_token = get_token().get_json(force=True)
+    api_token = json.loads(get_token().get_json(force=True))[0]["api_token"]
     request.get("https://api-dot-www-server-resume-1.ew.r.appspot.com/")
     wykop_data = requests.get(
         'https://wykop.pl/api/v3/tags/polska/stream?page=2&limit=20&sort=all',
