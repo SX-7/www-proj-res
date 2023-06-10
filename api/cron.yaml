@@ -1,5 +1,5 @@
 cron:
 - description: "bi-daily token update"
-  url: /api/refresh_token
+  url: /api/token/refresh
   schedule: every 12 hours
   target: api

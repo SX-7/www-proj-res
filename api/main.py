@@ -14,7 +14,7 @@ app = Flask(__name__)
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
 # addendum: modify to disallow external connections, https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
-@app.route("/api/refresh_token")
+@app.route("/api/token/refresh")
 def refresh_token():
     # here we basically wanna implement the entirety of token scrapper
     # GET request for a sample page, to get the vendor info
@@ -64,8 +64,47 @@ def refresh_token():
     datastore_client.put(entity=entity)
     return "", 204
 
+@app.route("/api/token/get")
+def get_token():
+# iniialize db connection
+    datastore_client = datastore.Client()
+    # setup and execute query
+    kind = "ApiTokens"
+    query = datastore_client.query(kind=kind)
+    data = list(query.fetch())
+    # return query results to the user
+    return jsonify(
+        [
+            {
+                "api_token": entity["api_token"]
+            }
+            for entity in data
+        ]
+    )
 
-@app.route("/api")
+@app.route("/api/mock")
+def get_some_wykop_data():
+    # parse ?-args
+    details = request.get_json()
+    
+    page = 1
+    if "page" in details:
+        page = details["page"]
+    # JIC
+    if isinstance(page, bytes):
+        page = page.decode("utf-8")
+    api_token = get_token().get_json(force=True)
+    request.get("https://api-dot-www-server-resume-1.ew.r.appspot.com/")
+    wykop_data = requests.get(
+        'https://wykop.pl/api/v3/tags/polska/stream?page=2&limit=20&sort=all',
+        headers={
+            "accept": "application/json",
+            "authorization": f"Bearer {api_token}",
+        },
+    )
+    return wykop_data.json()
+
+@app.route("/api/ai")
 def get_sentiments():
     # iniialize db connection
     datastore_client = datastore.Client()
@@ -87,7 +126,7 @@ def get_sentiments():
     )
 
 
-@app.route("/api", methods=["POST"])
+@app.route("/api/ai", methods=["POST"])
 def sample_analyze_sentiment():
     # initialize language analyzer connection
     client = language_v1.LanguageServiceClient()
@@ -126,7 +165,7 @@ def sample_analyze_sentiment():
     return "", 204
 
 
-@app.route("/api", methods=["DELETE"])
+@app.route("/api/ai", methods=["DELETE"])
 def delete_sentiment_entry():
     record_id = request.get_json()
     if "record_id" in record_id:
