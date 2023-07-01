@@ -7,9 +7,9 @@ import re
 import requests
 import base64
 import json
+import datetime
 
 app = Flask(__name__)
-
 
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
@@ -83,17 +83,53 @@ def get_token():
         ]
     )
 
+@app.route("/api/tracked_tags")
+def get_taglist(pythonic=False):
+    # iniialize db connection
+    datastore_client = datastore.Client()
+    # setup and execute query
+    kind = "Tags"
+    query = datastore_client.query(kind=kind)
+    data = list(query.fetch())
+    # return query results to the user
+    return_data = [
+        {
+            "tag_name": entity["tag_name"],
+            "start_time": entity["start_time"],
+            "end_time": entity["end_time"],
+            "processed_posts":entity["processed_posts"]
+        }
+        for entity in data
+    ]
+    if pythonic: # for in-program use
+        return return_data
+    else:
+        return jsonify(return_data)
+
+
 @app.route("/api/mock")
 def get_some_wykop_data():
-    token_data = get_token()
-    api_token = token_data.json[0]['api_token']
-    wykop_data = requests.get(
-        'https://wykop.pl/api/v3/tags/polska/stream?page=2&limit=20&sort=all',
-        headers={
-            "accept": "application/json",
-            "authorization": f"Bearer {api_token}",
-        },
-    )
+    api_token = get_token().json[0]['api_token']
+    tag_info = get_taglist(pythonic=True)
+    for tag_data in tag_info:
+        page_offset = (tag_data["processed_posts"]/25)+1
+        wykop_data = requests.get(
+            f'https://wykop.pl/api/v3/tags/{tag_data["tag_name"]}/stream',
+            headers={
+                "accept": "application/json",
+                "authorization": f"Bearer {api_token}",
+            },
+            
+            params={
+                'query': '#polska',
+                'sort': 'newest',
+                'votes': '100',
+                'date_from': f"{tag_data['start_time'].strftime('%Y-%m-%d %H:%M:%S')}",
+                'date_to': f"{tag_data['end_time'].strftime('%Y-%m-%d %H:%M:%S')}",
+                'page': f'{page_offset}',
+                'limit': '25',
+            }
+        )
     return jsonify(wykop_data.content.decode("utf-8"))
 
 @app.route("/api/ai")
