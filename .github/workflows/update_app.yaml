@@ -2,6 +2,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'app/**'
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
@@ -27,19 +29,6 @@ jobs:
         workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-    - name: Deploy API to App Engine
-      id: 'deploy_api'
-      uses: 'google-github-actions/deploy-appengine@v1'
-      with:
-        project_id: ${{ env.PROJECT_ID }}
-        working_directory: ./api
-        deliverables: 
-          api.yaml
-          cron.yaml
-
-    - name: Check API deployment status
-      run: echo ${{ steps.deploy_api.outputs.serving_status }}
-
     - name: Deploy app to App Engine
       id: 'deploy_app'
       uses: 'google-github-actions/deploy-appengine@v1'
@@ -55,9 +44,6 @@ jobs:
 
     - name: Test
       run: curl ${{ steps.deploy_app.outputs.version_url }}
-
-    - name: Remove old API versions
-      run: for version in $(gcloud app versions list --service api --sort-by '~VERSION.ID' --format 'value(VERSION.ID)' | sed 1,5d); do gcloud app versions delete "$version" --service api --quiet; done
 
     - name: Remove old app versions
       run: for version in $(gcloud app versions list --service default --sort-by '~VERSION.ID' --format 'value(VERSION.ID)' | sed 1,5d); do gcloud app versions delete "$version" --service default --quiet; done
