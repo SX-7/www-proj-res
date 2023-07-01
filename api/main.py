@@ -7,7 +7,6 @@ import re
 import requests
 import base64
 import json
-import datetime
 
 app = Flask(__name__)
 
@@ -101,10 +100,7 @@ def get_taglist(pythonic=False):
         }
         for entity in data
     ]
-    if pythonic: # for in-program use
-        return return_data
-    else:
-        return jsonify(return_data)
+    return return_data
 
 
 @app.route("/api/mock")
@@ -114,7 +110,7 @@ def get_some_wykop_data():
     for tag_data in tag_info:
         page_offset = (tag_data["processed_posts"]/25)+1
         wykop_data = requests.get(
-            f'https://wykop.pl/api/v3/tags/{tag_data["tag_name"]}/stream',
+            f'https://wykop.pl/api/v3/search/entries',
             headers={
                 "accept": "application/json",
                 "authorization": f"Bearer {api_token}",
@@ -130,7 +126,7 @@ def get_some_wykop_data():
                 'limit': '25',
             }
         )
-    return jsonify(wykop_data.content.decode("utf-8"))
+    return json.loads(wykop_data.content.decode("utf-8"))
 
 @app.route("/api/ai")
 def get_sentiments():
