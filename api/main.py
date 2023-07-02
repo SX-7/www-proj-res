@@ -156,7 +156,7 @@ def get_some_wykop_data():
     api_token = get_token()[0]["api_token"]
     tag_info = get_taglist()
     wykop_data = [
-        {
+        
             json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
@@ -175,7 +175,7 @@ def get_some_wykop_data():
                     },
                 ).content.decode("utf-8")
             )
-        }
+        
         for tag_data in tag_info
     ]
     return wykop_data
