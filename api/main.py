@@ -89,8 +89,8 @@ def get_taglist():
     data = list(query.fetch())
     # return query results to the user
     return [
-        {   
-            "entry_id":entity.key.id,
+        {
+            "entry_id": entity.key.id,
             "tag_name": entity["tag_name"],
             "start_time": entity["start_time"],
             "end_time": entity["end_time"],
@@ -104,6 +104,7 @@ def get_taglist():
 ## when unupdated (over 1 day since end_time), we download a batch > process it > store it
 ## when updated (1st condition not satisfied), we check for last processed post, get /newer info, and process if over 25 accumulated
 
+
 @app.route("/api/update")
 def update_sentiment_data():
     # step 1. get basic data
@@ -111,65 +112,51 @@ def update_sentiment_data():
     taglist = get_taglist()
     # step 2. check every tag
     for tag_info in taglist:
-        diff=datetime.datetime.now(tz=datetime.timezone.utc)-tag_info["start_time"]
-        query_data = get_wykop_data(api_token,tag_info["tag_name"],tag_info["start_time"],tag_info["end_time"])
+        diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
+        query_data = get_wykop_data(
+            api_token,
+            tag_info["tag_name"],
+            tag_info["start_time"],
+            tag_info["end_time"],
+        )
     return query_data
 
-def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, end_time:datetime.datetime):
-    wykop_data = list()
-    wykop_data.append(
-            json.loads(
-                requests.get(
-                    f"https://wykop.pl/api/v3/search/entries",
-                    headers={
-                        "accept": "application/json",
-                        "authorization": f"Bearer {api_token}",
-                    },
-                    params={
-                        "query": f'#{tag_name}',
-                        "sort": "newest",
-                        "votes": "100",
-                        "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                        "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                        "page": '1',
-                        "limit": "25",
-                    },
-                ).content.decode("utf-8")
-            )
-        )
-    for i in range(int((wykop_data[0]["pagination"]["total"]-1)/25)):
-        wykop_data.append(
-            json.loads(
-                requests.get(
-                    f"https://wykop.pl/api/v3/search/entries",
-                    headers={
-                        "accept": "application/json",
-                        "authorization": f"Bearer {api_token}",
-                    },
-                    params={
-                        "query": f'#{tag_name}',
-                        "sort": "newest",
-                        "votes": "100",
-                        "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                        "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                        "page": f'{i+1}',
-                        "limit": "25",
-                    },
-                ).content.decode("utf-8")
-            )
-        )
-    posts = list()
-    for chunk in wykop_data:
-        for k,v in chunk["data"]:
-            posts.append(v["content"])
+
+def get_wykop_data(
+    api_token: int,
+    tag_name: str,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+):
+    wykop_data = json.loads(
+        requests.get(
+            f"https://wykop.pl/api/v3/search/entries",
+            headers={
+                "accept": "application/json",
+                "authorization": f"Bearer {api_token}",
+            },
+            params={
+                "query": f"#{tag_name}",
+                "sort": "newest",
+                "votes": "100",
+                "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                "page": "1",
+                "limit": "25",
+            },
+        ).content.decode("utf-8")
+    )
+    for k, v in wykop_data.items():
+        pass
     return posts
+
 
 @app.route("/api/mock")
 def get_some_wykop_data():
     api_token = get_token()[0]["api_token"]
     tag_info = get_taglist()
-    wykop_data = {
-        str(tag_data['tag_name']): {
+    wykop_data = [
+        {
             json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
@@ -190,7 +177,7 @@ def get_some_wykop_data():
             )
         }
         for tag_data in tag_info
-    }
+    ]
     return wykop_data
 
 
