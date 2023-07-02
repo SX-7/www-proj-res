@@ -1,6 +1,6 @@
 import os
 from flask import Flask, jsonify, request
-from google.cloud import language_v1, datastore
+from google.cloud import language_v1, datastore, translate_v3
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -100,11 +100,6 @@ def get_taglist():
     ]
 
 
-## basically, we have two states: updated, and unupdated
-## when unupdated (over 1 day since end_time), we download a batch > process it > store it
-## when updated (1st condition not satisfied), we check for last processed post, get /newer info, and process if over 25 accumulated
-
-
 @app.route("/api/update")
 def update_sentiment_data():
     # step 1. get basic data
@@ -112,17 +107,52 @@ def update_sentiment_data():
     taglist = get_taglist()
     # step 2. check every tag
     for tag_info in taglist:
+        # if there's over 24 hours since a last update
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
-        # get posts, post total is for later
-        post_list, post_total = get_wykop_data(
-            api_token,
-            tag_info["tag_name"],
-            tag_info["start_time"],
-            tag_info["end_time"],
-        )
-        for i in range(int((post_total+1)/25)):
-            pass
-    return post_list
+        if diff.days >= 1:
+            # get posts for that day
+            post_list = get_wykop_data(
+                api_token,
+                tag_info["tag_name"],
+                tag_info["start_time"],
+                tag_info["end_time"],
+            )
+            if len(post_list) is not 0:
+                # format posts       
+                untagged = [re.sub(r"\#\S+\b\s?",'',post) for post in post_list]
+                newlined = [re.sub(r"\n",' ',post) for post in untagged]
+                unmarked = [re.sub(r"[\[\*\]]",'',post) for post in newlined]
+                unlinked = [re.sub(r"https?://\S+(?=[\s)])",'',post) for post in unmarked]
+                cleaned = [re.sub(r"[\(\)]",'',post) for post in unlinked]
+                # filter out short posts
+                filtered = [post for post in cleaned if len(post)>100]
+            if len(filtered) is not 0:
+                datastore_client = datastore.Client()
+                # put them into google translate
+                client = translate_v3.TranslationServiceClient()
+                kind = "ProjectId"
+                query = datastore_client.query(kind=kind)
+                data = list(query.fetch())
+                parent = data[0]["project_id"]
+                # Translate text from English to French
+                # Detail on supported types can be found here:
+                # https://cloud.google.com/translate/docs/supported-formats
+                response = client.translate_text(
+                    request={
+                        "parent": parent,
+                        "contents": [filtered],
+                        "mime_type": "text/plain",  # mime types: text/plain, text/html
+                        "source_language_code": "pl",
+                        "target_language_code": "en",
+                    }
+                )
+                translations = response.translations
+                # put the translated text into AI
+
+                # put the sentiment data back into db
+            
+            # update the time period
+    return translations
 
 
 def get_wykop_data(
@@ -149,12 +179,12 @@ def get_wykop_data(
             },
         ).content.decode("utf-8")
     )
-    results=list()
+    results = list()
     for v in wykop_data["data"]:
         results.append(v["content"])
     if wykop_data["pagination"]["total"] > 25:
         page = 2
-        while wykop_data["pagination"]["total"] > (page-1)*25:
+        while wykop_data["pagination"]["total"] > (page - 1) * 25:
             wykop_data = json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
@@ -175,8 +205,8 @@ def get_wykop_data(
             )
             for v in wykop_data["data"]:
                 results.append(v["content"])
-            page+=1
-    return results, wykop_data["pagination"]["total"]
+            page += 1
+    return results
 
 
 @app.route("/api/mock")
@@ -184,26 +214,24 @@ def get_some_wykop_data():
     api_token = get_token()[0]["api_token"]
     tag_info = get_taglist()
     wykop_data = {
-            f"{tag_data['tag_name']}":
-            json.loads(
-                requests.get(
-                    f"https://wykop.pl/api/v3/search/entries",
-                    headers={
-                        "accept": "application/json",
-                        "authorization": f"Bearer {api_token}",
-                    },
-                    params={
-                        "query": f'#{tag_data["tag_name"]}',
-                        "sort": "newest",
-                        "votes": "100",
-                        "date_from": f'{tag_data["start_time"].strftime("%Y-%m-%d %H:%M:%S")}',
-                        "date_to": f'{tag_data["end_time"].strftime("%Y-%m-%d %H:%M:%S")}',
-                        "page": f'{(tag_data["processed_posts"] / 25) + 1}',
-                        "limit": "25",
-                    },
-                ).content.decode("utf-8")
-            )
-        
+        f"{tag_data['tag_name']}": json.loads(
+            requests.get(
+                f"https://wykop.pl/api/v3/search/entries",
+                headers={
+                    "accept": "application/json",
+                    "authorization": f"Bearer {api_token}",
+                },
+                params={
+                    "query": f'#{tag_data["tag_name"]}',
+                    "sort": "newest",
+                    "votes": "100",
+                    "date_from": f'{tag_data["start_time"].strftime("%Y-%m-%d %H:%M:%S")}',
+                    "date_to": f'{tag_data["end_time"].strftime("%Y-%m-%d %H:%M:%S")}',
+                    "page": f'{(tag_data["processed_posts"] / 25) + 1}',
+                    "limit": "25",
+                },
+            ).content.decode("utf-8")
+        )
         for tag_data in tag_info
     }
     return wykop_data
