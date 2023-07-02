@@ -117,7 +117,7 @@ def update_sentiment_data():
 
 def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, end_time:datetime.datetime):
     wykop_data = list()
-    wykop_data.append({
+    wykop_data.append(
             json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
@@ -136,9 +136,9 @@ def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, en
                     },
                 ).content.decode("utf-8")
             )
-        })
+        )
     for i in range(int((wykop_data[0]["pagination"]["total"]-1)/25)):
-        wykop_data.append({
+        wykop_data.append(
             json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
@@ -157,7 +157,7 @@ def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, en
                     },
                 ).content.decode("utf-8")
             )
-        })
+        )
     posts = list()
     for chunk in wykop_data:
         for k,v in chunk["data"]:
@@ -169,7 +169,7 @@ def get_some_wykop_data():
     api_token = get_token()[0]["api_token"]
     tag_info = get_taglist()
     wykop_data = {
-        f"{tag_data['tag_name']}": {
+        str(tag_data['tag_name']): {
             json.loads(
                 requests.get(
                     f"https://wykop.pl/api/v3/search/entries",
