@@ -119,7 +119,7 @@ def update_sentiment_data():
             )
             
                 # filter out short posts
-            filtered = [post for post in post_list if len(post)>100]
+            filtered = [post for post in post_list if len(post)>200]
             if len(filtered) is not 0:
                 datastore_client = datastore.Client()
                 # put them into google translate
@@ -140,13 +140,17 @@ def update_sentiment_data():
                         "target_language_code": "en",
                     }
                 )
-                translations = response.translations
-                # put the translated text into AI
-
+                translations = [translation.translated_text for translation in response.translations]
+                # put the translated text into AI - optimizations pending cuz it's like way too expensive as is
+                # client = language_v1.LanguageServiceClient()
+                # type_ = language_v1.Document.Type.PLAIN_TEXT
+                # document = {"type_": type_, "content": content}
+                # response = client.analyze_sentiment(request={"document": document})
+                # sentiment = response.document_sentiment
                 # put the sentiment data back into db
             
             # update the time period
-    return [translation.translated_text for translation in translations]
+    return translations
 
 
 def get_wykop_posts(
@@ -210,39 +214,10 @@ def get_wykop_posts(
         cleaned = [re.sub(r"\(\)",'',post) for post in unlinked]
     return cleaned
 
-
-@app.route("/api/mock")
-def get_some_wykop_data():
-    api_token = get_token()[0]["api_token"]
-    tag_info = get_taglist()
-    wykop_data = {
-        f"{tag_data['tag_name']}": json.loads(
-            requests.get(
-                f"https://wykop.pl/api/v3/search/entries",
-                headers={
-                    "accept": "application/json",
-                    "authorization": f"Bearer {api_token}",
-                },
-                params={
-                    "query": f'#{tag_data["tag_name"]}',
-                    "sort": "newest",
-                    "votes": "100",
-                    "date_from": f'{tag_data["start_time"].strftime("%Y-%m-%d %H:%M:%S")}',
-                    "date_to": f'{tag_data["end_time"].strftime("%Y-%m-%d %H:%M:%S")}',
-                    "page": f'{(tag_data["processed_posts"] / 25) + 1}',
-                    "limit": "25",
-                },
-            ).content.decode("utf-8")
-        )
-        for tag_data in tag_info
-    }
-    return wykop_data
-
-
 ### --- things below to be done later ---
 
 
-@app.route("/api/ai")
+#@app.route("/api/ai")
 def get_sentiments():
     # iniialize db connection
     datastore_client = datastore.Client()
@@ -262,10 +237,10 @@ def get_sentiments():
     ]
 
 
-@app.route("/api/ai", methods=["POST"])
+#@app.route("/api/ai", methods=["POST"])
 def sample_analyze_sentiment():
     # initialize language analyzer connection
-    client = language_v1.LanguageServiceClient()
+    
     # get request info
     content = request.get_json()
     # check for compliance with arbitrary API rules
@@ -277,10 +252,7 @@ def sample_analyze_sentiment():
     if isinstance(content, bytes):
         content = content.decode("utf-8")
     # analyze
-    type_ = language_v1.Document.Type.PLAIN_TEXT
-    document = {"type_": type_, "content": content}
-    response = client.analyze_sentiment(request={"document": document})
-    sentiment = response.document_sentiment
+    
 
     # Instantiates a db client
     datastore_client = datastore.Client()
@@ -298,20 +270,6 @@ def sample_analyze_sentiment():
 
     # Saves the entity
     datastore_client.put(entity)
-    return "", 204
-
-
-@app.route("/api/ai", methods=["DELETE"])
-def delete_sentiment_entry():
-    record_id = request.get_json()
-    if "record_id" in record_id:
-        record_id = record_id["record_id"]
-    else:
-        return "", 400
-    datastore_client = datastore.Client()
-    kind = "Sentiment"
-    entity_key = datastore_client.key(kind, record_id)
-    datastore_client.delete(entity_key)
     return "", 204
 
 
