@@ -141,16 +141,25 @@ def update_sentiment_data():
                     }
                 )
                 translations = [translation.translated_text for translation in response.translations]
-                # put the translated text into AI - optimizations pending cuz it's like way too expensive as is
-                # client = language_v1.LanguageServiceClient()
-                # type_ = language_v1.Document.Type.PLAIN_TEXT
-                # document = {"type_": type_, "content": content}
-                # response = client.analyze_sentiment(request={"document": document})
-                # sentiment = response.document_sentiment
+                # put the translated text into AI
+                client = language_v1.LanguageServiceClient()
+                type_ = language_v1.Document.Type.PLAIN_TEXT
+                analysis = list()
+                for content in translations:
+                    document = {"type_": type_, "content": content}
+                    response = client.analyze_sentiment(request={"document": document})
+                    sentiment = response.document_sentiment
+                    analysis.append(
+                        {
+                            "content":content,
+                            "score":sentiment.score,
+                            "magnitude":sentiment.magnitude
+                        }
+                    )
                 # put the sentiment data back into db
             
             # update the time period
-    return translations
+    return analysis
 
 
 def get_wykop_posts(
