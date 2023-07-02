@@ -147,7 +147,7 @@ def get_wykop_data(
         ).content.decode("utf-8")
     )
     results=list()
-    for k, v in wykop_data["data"].items():
+    for v in wykop_data["data"]:
         results.append(v["content"])
     return results
 
