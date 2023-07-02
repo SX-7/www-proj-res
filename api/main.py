@@ -113,13 +113,16 @@ def update_sentiment_data():
     # step 2. check every tag
     for tag_info in taglist:
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
-        query_data = get_wykop_data(
+        # get posts, post total is for later
+        post_list, post_total = get_wykop_data(
             api_token,
             tag_info["tag_name"],
             tag_info["start_time"],
             tag_info["end_time"],
         )
-    return query_data
+        for i in range(int((post_total+1)/25)):
+            pass
+    return post_list
 
 
 def get_wykop_data(
@@ -149,7 +152,31 @@ def get_wykop_data(
     results=list()
     for v in wykop_data["data"]:
         results.append(v["content"])
-    return results
+    if wykop_data["pagination"]["total"] > 25:
+        page = 2
+        while wykop_data["pagination"]["total"] > (page-1)*25:
+            wykop_data = json.loads(
+                requests.get(
+                    f"https://wykop.pl/api/v3/search/entries",
+                    headers={
+                        "accept": "application/json",
+                        "authorization": f"Bearer {api_token}",
+                    },
+                    params={
+                        "query": f"#{tag_name}",
+                        "sort": "newest",
+                        "votes": "100",
+                        "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "page": f"{page}",
+                        "limit": "25",
+                    },
+                ).content.decode("utf-8")
+            )
+            for v in wykop_data["data"]:
+                results.append(v["content"])
+            page+=1
+    return results, wykop_data["pagination"]["total"]
 
 
 @app.route("/api/mock")
