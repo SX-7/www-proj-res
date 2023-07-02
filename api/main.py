@@ -111,22 +111,15 @@ def update_sentiment_data():
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
         if diff.days >= 1:
             # get posts for that day
-            post_list = get_wykop_data(
+            post_list = get_wykop_posts(
                 api_token,
                 tag_info["tag_name"],
                 tag_info["start_time"],
                 tag_info["end_time"],
             )
-            if len(post_list) is not 0:
-                # format posts       
-                untagged = [re.sub(r"\#\S+\b\s?",'',post) for post in post_list]
-                newlined = [re.sub(r"\n",' ',post) for post in untagged]
-                carriaged = [re.sub(r"\r",'',post) for post in newlined]
-                unmarked = [re.sub(r"[\[\*\]]",'',post) for post in carriaged]
-                unlinked = [re.sub(r"https?://\S+(?=[\s)])",'',post) for post in unmarked]
-                cleaned = [re.sub(r"[\(\)]",'',post) for post in unlinked]
+            
                 # filter out short posts
-                filtered = [post for post in cleaned if len(post)>100]
+            filtered = [post for post in post_list if len(post)>100]
             if len(filtered) is not 0:
                 datastore_client = datastore.Client()
                 # put them into google translate
@@ -156,7 +149,7 @@ def update_sentiment_data():
     return [translation.translated_text for translation in translations]
 
 
-def get_wykop_data(
+def get_wykop_posts(
     api_token: int,
     tag_name: str,
     start_time: datetime.datetime,
@@ -207,7 +200,15 @@ def get_wykop_data(
             for v in wykop_data["data"]:
                 results.append(v["content"])
             page += 1
-    return results
+    if len(results) is not 0:
+        # format posts       
+        untagged = [re.sub(r"\#\S+\b\s?",'',post) for post in results]
+        newlined = [re.sub(r"\n",' ',post) for post in untagged]
+        carriaged = [re.sub(r"\r",'',post) for post in newlined]
+        unmarked = [re.sub(r"[\[\*\]]",'',post) for post in carriaged]
+        unlinked = [re.sub(r"https?://\S+(?=[\s)])",'',post) for post in unmarked]
+        cleaned = [re.sub(r"\(\)",'',post) for post in unlinked]
+    return cleaned
 
 
 @app.route("/api/mock")
