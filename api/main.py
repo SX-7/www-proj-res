@@ -111,7 +111,7 @@ def update_sentiment_data():
     taglist = get_taglist()
     # step 2. check every tag
     for tag_info in taglist:
-        diff=datetime.datetime.now()-tag_info["start_time"]
+        diff=datetime.datetime.now(tz=datetime.timezone.utc)-tag_info["start_time"]
         query_data = get_wykop_data(api_token,tag_info["tag_name"],tag_info["start_time"],tag_info["end_time"])
     return query_data
 
