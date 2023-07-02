@@ -139,7 +139,7 @@ def update_sentiment_data():
                             "target_language_code": "en",
                         }
                     )
-                    translations.append = {"content":response.translations[0].translated_text,"votes":post["votes"]}
+                    translations.append({"content":response.translations[0].translated_text,"votes":post["votes"]})
                 # put the translated text into AI
                 client = language_v1.LanguageServiceClient()
                 type_ = language_v1.Document.Type.PLAIN_TEXT
