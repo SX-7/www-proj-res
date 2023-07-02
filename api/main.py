@@ -107,7 +107,7 @@ def get_taglist():
 @app.route("/api/update")
 def update_sentiment_data():
     # step 1. get basic data
-    api_token = get_token()["api_token"]
+    api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
     # step 2. check every tag
     for tag_info in taglist:
@@ -166,7 +166,7 @@ def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, en
 
 @app.route("/api/mock")
 def get_some_wykop_data():
-    api_token = get_token()["api_token"]
+    api_token = get_token()[0]["api_token"]
     tag_info = get_taglist()
     wykop_data = {
         f"{tag_data['tag_name']}": {
