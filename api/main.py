@@ -140,7 +140,7 @@ def update_sentiment_data():
                 response = client.translate_text(
                     request={
                         "parent": parent,
-                        "contents": [filtered],
+                        "contents": filtered,
                         "mime_type": "text/plain",  # mime types: text/plain, text/html
                         "source_language_code": "pl",
                         "target_language_code": "en",
