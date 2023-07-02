@@ -152,7 +152,7 @@ def update_sentiment_data():
                 # put the sentiment data back into db
             
             # update the time period
-    return translations
+    return [translation.translated_text for translation in translations]
 
 
 def get_wykop_data(
