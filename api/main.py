@@ -117,9 +117,9 @@ def update_sentiment_data():
                 tag_info["start_time"],
                 tag_info["end_time"],
             )
-            
-                # filter out short posts
-            filtered = [post for post in post_list if len(post)>200]
+
+            # filter out short posts
+            filtered = [post for post in post_list if len(post["content"]) > 200]
             if len(filtered) is not 0:
                 datastore_client = datastore.Client()
                 # put them into google translate
@@ -128,37 +128,50 @@ def update_sentiment_data():
                 query = datastore_client.query(kind=kind)
                 data = list(query.fetch())
                 parent = data[0]["project_id"]
-                # Translate text from English to French
-                # Detail on supported types can be found here:
-                # https://cloud.google.com/translate/docs/supported-formats
-                response = client.translate_text(
-                    request={
-                        "parent": parent,
-                        "contents": filtered,
-                        "mime_type": "text/plain",  # mime types: text/plain, text/html
-                        "source_language_code": "pl",
-                        "target_language_code": "en",
-                    }
-                )
-                translations = [translation.translated_text for translation in response.translations]
+                translations = list()
+                for post in filtered:
+                    response = client.translate_text(
+                        request={
+                            "parent": parent,
+                            "contents": [post["content"]],
+                            "mime_type": "text/plain",  # mime types: text/plain, text/html
+                            "source_language_code": "pl",
+                            "target_language_code": "en",
+                        }
+                    )
+                    translations.append = {"content":response.translations[0].translated_text,"votes":post["votes"]}
                 # put the translated text into AI
                 client = language_v1.LanguageServiceClient()
                 type_ = language_v1.Document.Type.PLAIN_TEXT
                 analysis = list()
+                w_avg_top = 0
+                w_avg_bot = 0
                 for content in translations:
-                    document = {"type_": type_, "content": content}
+                    document = {"type_": type_, "content": content["content"]}
                     response = client.analyze_sentiment(request={"document": document})
                     sentiment = response.document_sentiment
+                    w_avg_top = w_avg_top + sentiment.score * sentiment.magnitude
+                    w_avg_bot = w_avg_bot + sentiment.magnitude
                     analysis.append(
-                        {
-                            "content":content,
-                            "score":sentiment.score,
-                            "magnitude":sentiment.magnitude
-                        }
+                        {"content":content["content"],"score": sentiment.score, "magnitude": sentiment.magnitude,"votes":content["votes"]}
                     )
+                
                 # put the sentiment data back into db
-            
+                # The kind for the new entity
+                #kind = "Sentiment"
+                # The Cloud Datastore key for the new entity
+                #entity_key = datastore_client.key(kind)
+
+                # Prepares the new entity
+                #entity = datastore.Entity(key=entity_key)
+                #entity["content"] = content
+                #entity["score"] = sentiment.score
+                #entity["magnitude"] = sentiment.magnitude
+
+                # Saves the entity
+                #datastore_client.put(entity)
             # update the time period
+
     return analysis
 
 
@@ -168,6 +181,7 @@ def get_wykop_posts(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
 ):
+    cleaned = []
     wykop_data = json.loads(
         requests.get(
             f"https://wykop.pl/api/v3/search/entries",
@@ -188,7 +202,7 @@ def get_wykop_posts(
     )
     results = list()
     for v in wykop_data["data"]:
-        results.append(v["content"])
+        results.append({"content":v["content"],"votes":v["votes"]["up"]})
     if wykop_data["pagination"]["total"] > 25:
         page = 2
         while wykop_data["pagination"]["total"] > (page - 1) * 25:
@@ -211,22 +225,24 @@ def get_wykop_posts(
                 ).content.decode("utf-8")
             )
             for v in wykop_data["data"]:
-                results.append(v["content"])
+                results.append({"content":v["content"],"votes":v["votes"]["up"]})
             page += 1
     if len(results) is not 0:
-        # format posts       
-        untagged = [re.sub(r"\#\S+\b\s?",'',post) for post in results]
-        newlined = [re.sub(r"\n",' ',post) for post in untagged]
-        carriaged = [re.sub(r"\r",'',post) for post in newlined]
-        unmarked = [re.sub(r"[\[\*\]]",'',post) for post in carriaged]
-        unlinked = [re.sub(r"https?://\S+(?=[\s)])",'',post) for post in unmarked]
-        cleaned = [re.sub(r"\(\)",'',post) for post in unlinked]
+        # format posts
+        untagged = [{"content":re.sub(r"\#\S+\b\s?", "", post["content"]),"votes":post["votes"]} for post in results]
+        newlined = [{"content":re.sub(r"\n", " ", post["content"]),"votes":post["votes"]} for post in untagged]
+        carriaged = [{"content":re.sub(r"\r", "", post["content"]),"votes":post["votes"]} for post in newlined]
+        unmarked = [{"content":re.sub(r"[\[\*\]]", "", post["content"]),"votes":post["votes"]} for post in carriaged]
+        unlinked = [{"content":re.sub(r"https?://\S+(?=[\s)])", "", post["content"]),"votes":post["votes"]} for post in unmarked]
+        cleaned = [{"content":re.sub(r"\(\)", "", post["content"]),"votes":post["votes"]} for post in unlinked]
+
     return cleaned
+
 
 ### --- things below to be done later ---
 
 
-#@app.route("/api/ai")
+# @app.route("/api/ai")
 def get_sentiments():
     # iniialize db connection
     datastore_client = datastore.Client()
@@ -246,10 +262,10 @@ def get_sentiments():
     ]
 
 
-#@app.route("/api/ai", methods=["POST"])
+# @app.route("/api/ai", methods=["POST"])
 def sample_analyze_sentiment():
     # initialize language analyzer connection
-    
+
     # get request info
     content = request.get_json()
     # check for compliance with arbitrary API rules
@@ -261,7 +277,6 @@ def sample_analyze_sentiment():
     if isinstance(content, bytes):
         content = content.decode("utf-8")
     # analyze
-    
 
     # Instantiates a db client
     datastore_client = datastore.Client()
