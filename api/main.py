@@ -7,8 +7,10 @@ import re
 import requests
 import base64
 import json
+import datetime
 
 app = Flask(__name__)
+
 
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
@@ -64,26 +66,21 @@ def refresh_token():
     datastore_client.put(entity=entity)
     return "", 204
 
-@app.route("/api/token/get")
+
+@app.route("/api/token")
 def get_token():
-# iniialize db connection
+    # iniialize db connection
     datastore_client = datastore.Client()
     # setup and execute query
     kind = "ApiTokens"
     query = datastore_client.query(kind=kind)
     data = list(query.fetch())
     # return query results to the user
-    return jsonify(
-        [
-            {
-                "api_token": entity["api_token"]
-            }
-            for entity in data
-        ]
-    )
+    return [{"api_token": entity["api_token"]} for entity in data]
+
 
 @app.route("/api/tracked_tags")
-def get_taglist(pythonic=False):
+def get_taglist():
     # iniialize db connection
     datastore_client = datastore.Client()
     # setup and execute query
@@ -91,42 +88,114 @@ def get_taglist(pythonic=False):
     query = datastore_client.query(kind=kind)
     data = list(query.fetch())
     # return query results to the user
-    return_data = [
-        {
+    return [
+        {   
+            "entry_id":entity.key.id,
             "tag_name": entity["tag_name"],
             "start_time": entity["start_time"],
             "end_time": entity["end_time"],
-            "processed_posts":entity["processed_posts"]
+            "processed_posts": entity["processed_posts"],
         }
         for entity in data
     ]
-    return return_data
 
+
+## basically, we have two states: updated, and unupdated
+## when unupdated (over 1 day since end_time), we download a batch > process it > store it
+## when updated (1st condition not satisfied), we check for last processed post, get /newer info, and process if over 25 accumulated
+
+@app.route("/api/update")
+def update_sentiment_data():
+    # step 1. get basic data
+    api_token = get_token().json[0]["api_token"]
+    taglist = get_taglist()
+    # step 2. check every tag
+    for tag_info in taglist:
+        diff=datetime.datetime.now()-tag_info["start_time"]
+        query_data = get_wykop_data(api_token,tag_info["tag_name"],tag_info["start_time"],tag_info["end_time"])
+    return query_data
+
+def get_wykop_data(api_token:int, tag_name:str, start_time:datetime.datetime, end_time:datetime.datetime):
+    wykop_data = list()
+    wykop_data.append({
+            json.loads(
+                requests.get(
+                    f"https://wykop.pl/api/v3/search/entries",
+                    headers={
+                        "accept": "application/json",
+                        "authorization": f"Bearer {api_token}",
+                    },
+                    params={
+                        "query": f'#{tag_name}',
+                        "sort": "newest",
+                        "votes": "100",
+                        "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "page": '1',
+                        "limit": "25",
+                    },
+                ).content.decode("utf-8")
+            )
+        })
+    for i in range(int((wykop_data[0]["pagination"]["total"]-1)/25)):
+        wykop_data.append({
+            json.loads(
+                requests.get(
+                    f"https://wykop.pl/api/v3/search/entries",
+                    headers={
+                        "accept": "application/json",
+                        "authorization": f"Bearer {api_token}",
+                    },
+                    params={
+                        "query": f'#{tag_name}',
+                        "sort": "newest",
+                        "votes": "100",
+                        "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                        "page": f'{i+1}',
+                        "limit": "25",
+                    },
+                ).content.decode("utf-8")
+            )
+        })
+    posts = list()
+    for chunk in wykop_data:
+        for k,v in chunk["data"]:
+            posts.append(v["content"])
+    return posts
 
 @app.route("/api/mock")
 def get_some_wykop_data():
-    api_token = get_token().json[0]['api_token']
-    tag_info = get_taglist(pythonic=True)
-    for tag_data in tag_info:
-        page_offset = (tag_data["processed_posts"]/25)+1
-        wykop_data = requests.get(
-            f'https://wykop.pl/api/v3/search/entries',
-            headers={
-                "accept": "application/json",
-                "authorization": f"Bearer {api_token}",
-            },
-            
-            params={
-                'query': '#polska',
-                'sort': 'newest',
-                'votes': '100',
-                'date_from': f"{tag_data['start_time'].strftime('%Y-%m-%d %H:%M:%S')}",
-                'date_to': f"{tag_data['end_time'].strftime('%Y-%m-%d %H:%M:%S')}",
-                'page': f'{page_offset}',
-                'limit': '25',
-            }
-        )
-    return json.loads(wykop_data.content.decode("utf-8"))
+    api_token = get_token().json[0]["api_token"]
+    tag_info = get_taglist()
+    wykop_data = {
+        f"{tag_data['tag_name']}": {
+            json.loads(
+                requests.get(
+                    f"https://wykop.pl/api/v3/search/entries",
+                    headers={
+                        "accept": "application/json",
+                        "authorization": f"Bearer {api_token}",
+                    },
+                    params={
+                        "query": f'#{tag_data["tag_name"]}',
+                        "sort": "newest",
+                        "votes": "100",
+                        "date_from": f'{tag_data["start_time"].strftime("%Y-%m-%d %H:%M:%S")}',
+                        "date_to": f'{tag_data["end_time"].strftime("%Y-%m-%d %H:%M:%S")}',
+                        "page": f'{(tag_data["processed_posts"] / 25) + 1}',
+                        "limit": "25",
+                    },
+                ).content.decode("utf-8")
+            )
+        }
+        for tag_data in tag_info
+    }
+    return wykop_data
+
+
+### --- things below to be done later ---
+
 
 @app.route("/api/ai")
 def get_sentiments():
@@ -137,17 +206,15 @@ def get_sentiments():
     query = datastore_client.query(kind=kind)
     data = list(query.fetch())
     # return query results to the user
-    return jsonify(
-        [
-            {
-                "key_id": entity.id,
-                "content": entity["content"],
-                "score": entity["score"],
-                "magnitude": entity["magnitude"],
-            }
-            for entity in data
-        ]
-    )
+    return [
+        {
+            "key_id": entity.id,
+            "content": entity["content"],
+            "score": entity["score"],
+            "magnitude": entity["magnitude"],
+        }
+        for entity in data
+    ]
 
 
 @app.route("/api/ai", methods=["POST"])
