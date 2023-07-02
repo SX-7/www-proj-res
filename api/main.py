@@ -121,7 +121,8 @@ def update_sentiment_data():
                 # format posts       
                 untagged = [re.sub(r"\#\S+\b\s?",'',post) for post in post_list]
                 newlined = [re.sub(r"\n",' ',post) for post in untagged]
-                unmarked = [re.sub(r"[\[\*\]]",'',post) for post in newlined]
+                carriaged = [re.sub(r"\r",'',post) for post in newlined]
+                unmarked = [re.sub(r"[\[\*\]]",'',post) for post in carriaged]
                 unlinked = [re.sub(r"https?://\S+(?=[\s)])",'',post) for post in unmarked]
                 cleaned = [re.sub(r"[\(\)]",'',post) for post in unlinked]
                 # filter out short posts
