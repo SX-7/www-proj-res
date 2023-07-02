@@ -1,6 +1,6 @@
 import os
 from flask import Flask, jsonify, request
-from google.cloud import language_v1, datastore, translate_v3
+from google.cloud import language_v1, datastore, translate
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -129,7 +129,7 @@ def update_sentiment_data():
             if len(filtered) is not 0:
                 datastore_client = datastore.Client()
                 # put them into google translate
-                client = translate_v3.TranslationServiceClient()
+                client = translate.TranslationServiceClient()
                 kind = "ProjectId"
                 query = datastore_client.query(kind=kind)
                 data = list(query.fetch())
