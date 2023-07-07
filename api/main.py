@@ -370,6 +370,7 @@ def get_sentiments():
         query = datastore_client.query(kind=kind)
         data = query.fetch()
         # return query results to the user
+        tag_dict={}
         for entry in data:
             day = str(entry["day"])
             if len(day) is 1:
@@ -377,13 +378,15 @@ def get_sentiments():
             month = str(entry["month"])
             if len(month) is 1:
                 month = "0" + month
-            reval[tag][f"{str(entry['year'])}-{month}-{day}"] = {
+            
+            tag_dict[f"{str(entry['year'])}-{month}-{day}"] = {
                 "upvote_total":entry["upvote_total"],
                 "post_total":entry["post_total"],
                 "filtered_post_total":entry["filtered_post_total"],
                 "weighted_average":entry["weighted_average"],
                 "upvoted_weighted_average":entry["upvoted_weighted_average"]
             }
+        reval[tag] = tag_dict
     return reval
 
 
