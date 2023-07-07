@@ -126,8 +126,8 @@ def update_sentiment_data():
             upvoted_weighted_average = 0
             # filter out short posts
             filtered = [post for post in post_list if len(post["content"]) > 200]
+            datastore_client = datastore.Client()
             if len(filtered) is not 0:
-                datastore_client = datastore.Client()
                 # put them into google translate
                 client = translate.TranslationServiceClient()
                 kind = "ProjectId"
