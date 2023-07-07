@@ -202,7 +202,7 @@ def update_sentiment_data():
             # and to use it to be able to put only data related to a tag into the DB
             # this is mostly to organize data, instead of putting everything in one table
             # The kind for the new entity
-            kind = "Sentiment" + str(tag_info["tag_name"])
+            kind = "Sentiment_" + str(tag_info["tag_name"])
             # The Cloud Datastore key for the new entity
             entity_key = datastore_client.key(kind)
 
@@ -222,11 +222,11 @@ def update_sentiment_data():
             # update the time period
             # setup and execute get
             kind = "Tags"
-            target_key = datastore_client.key(kind,tag_info["entry_id"])
+            target_key = datastore_client.key(kind, tag_info["entry_id"])
             curr_tag_info = datastore_client.get(target_key)
-            curr_tag_info["start_time"]=tag_info["end_time"]
-            curr_tag_info["end_time"]=tag_info["end_time"]+datetime.timedelta(1)
-            curr_tag_info["processed_posts"]+=filtered_post_total
+            curr_tag_info["start_time"] = tag_info["end_time"]
+            curr_tag_info["end_time"] = tag_info["end_time"] + datetime.timedelta(1)
+            curr_tag_info["processed_posts"] += filtered_post_total
             # return query results to the user
             datastore_client.put(curr_tag_info)
 
@@ -326,7 +326,7 @@ def get_wykop_posts(
             {"content": re.sub(r"\(\)", "", post["content"]), "votes": post["votes"]}
             for post in unlinked
         ]
-    
+
     post_total = json.loads(
         requests.get(
             f"https://wykop.pl/api/v3/search/entries",
@@ -348,67 +348,43 @@ def get_wykop_posts(
     try:
         post_total = int(post_total)
     except:
-        post_total=0
+        post_total = 0
 
     return cleaned, filtered_upvote_total, filtered_post_total, post_total
 
 
-### --- things below to be done later ---
-
-
-# @app.route("/api/ai")
+@app.route("/api/get")
 def get_sentiments():
+    # basically, get a http GET request, use info provided by the request to query db and return data
+    tags = request.args.getlist("tags")
+    # if tags = empty => assume querying for everything
+    if len(tags) is 0:
+        tracked_list = get_taglist()
+        tags = [tag["tag_name"] for tag in tracked_list]
     # iniialize db connection
     datastore_client = datastore.Client()
     # setup and execute query
-    kind = "Sentiment"
-    query = datastore_client.query(kind=kind)
-    data = list(query.fetch())
-    # return query results to the user
-    return [
-        {
-            "key_id": entity.id,
-            "content": entity["content"],
-            "score": entity["score"],
-            "magnitude": entity["magnitude"],
-        }
-        for entity in data
-    ]
-
-
-# @app.route("/api/ai", methods=["POST"])
-def sample_analyze_sentiment():
-    # initialize language analyzer connection
-
-    # get request info
-    content = request.get_json()
-    # check for compliance with arbitrary API rules
-    if "content" in content:
-        content = content["content"]
-    else:
-        return "", 400
-    # JIC
-    if isinstance(content, bytes):
-        content = content.decode("utf-8")
-    # analyze
-
-    # Instantiates a db client
-    datastore_client = datastore.Client()
-
-    # The kind for the new entity
-    kind = "Sentiment"
-    # The Cloud Datastore key for the new entity
-    entity_key = datastore_client.key(kind)
-
-    # Prepares the new entity
-    entity = datastore.Entity(key=entity_key)
-    entity["content"] = content
-    entity["score"] = sentiment.score
-    entity["magnitude"] = sentiment.magnitude
-
-    # Saves the entity
-    datastore_client.put(entity)
-    return "", 204
+    reval = {}
+    for tag in tags:
+        kind = "Sentiment_" + str(tag)
+        query = datastore_client.query(kind=kind)
+        data = query.fetch()
+        # return query results to the user
+        for entry in data:
+            day = str(entry["day"])
+            if len(day) is 1:
+                day = "0" + day
+            month = str(entry["month"])
+            if len(month) is 1:
+                month = "0" + month
+            reval[tag][f"{str(entry['year'])}-{month}-{day}"] = {
+                "upvote_total":entry["upvote_total"],
+                "post_total":entry["post_total"],
+                "filtered_post_total":entry["filtered_post_total"],
+                "weighted_average":entry["weighted_average"],
+                "upvoted_weighted_average":entry["upvoted_weighted_average"]
+            }
+    return reval
 
 
 if __name__ == "__main__":
