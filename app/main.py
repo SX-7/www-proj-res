@@ -14,7 +14,7 @@ def hello():
     # upvote total - how many upvotes in posts over 100 upvotes
     # weighted average - positive/negative perception, calculated with score as values, and confidence as weights
     # upvoted weighted average - upvotes are also added as weights, makes more upvoted posts more impactful
-    r = requests.get("https://www-server-resume-1.ew.r.appspot.com")
+    r = requests.get("https://www-server-resume-1.ew.r.appspot.com/api/get")
     return r.json()
 
 

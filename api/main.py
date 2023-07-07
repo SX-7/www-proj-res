@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from google.cloud import language_v1, datastore, translate
 import requests
 from bs4 import BeautifulSoup
