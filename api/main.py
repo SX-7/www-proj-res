@@ -122,7 +122,8 @@ def update_sentiment_data():
                 tag_info["start_time"],
                 tag_info["end_time"],
             )
-
+            normal_weighted_average = 0
+            upvoted_weighted_average = 0
             # filter out short posts
             filtered = [post for post in post_list if len(post["content"]) > 200]
             if len(filtered) is not 0:
@@ -154,8 +155,6 @@ def update_sentiment_data():
                 client = language_v1.LanguageServiceClient()
                 type_ = language_v1.Document.Type.PLAIN_TEXT
                 analysis = list()
-                w_avg_top = 0
-                w_avg_bot = 0
                 for content in translations:
                     document = {"type_": type_, "content": content["content"]}
                     response = client.analyze_sentiment(request={"document": document})
@@ -198,32 +197,40 @@ def update_sentiment_data():
                     )
                 )
 
-                # put the sentiment data back into db
-                # The kind for the new entity
-                # kind = "Sentiment"
-                # The Cloud Datastore key for the new entity
-                # entity_key = datastore_client.key(kind)
+            # put the sentiment data back into db
+            # general idea is to use seperate kind (TagInfo) to store well, tag info
+            # and to use it to be able to put only data related to a tag into the DB
+            # this is mostly to organize data, instead of putting everything in one table
+            # The kind for the new entity
+            kind = "Sentiment" + str(tag_info["tag_name"])
+            # The Cloud Datastore key for the new entity
+            entity_key = datastore_client.key(kind)
 
-                # Prepares the new entity
-                # entity = datastore.Entity(key=entity_key)
-                # entity["content"] = content
-                # entity["score"] = sentiment.score
-                # entity["magnitude"] = sentiment.magnitude
+            # Prepares the new entity
+            entity = datastore.Entity(key=entity_key)
+            entity["upvote_total"] = filtered_upvote_total
+            entity["post_total"] = post_total
+            entity["filtered_post_total"] = filtered_post_total
+            entity["weighted_average"] = normal_weighted_average
+            entity["upvoted_weighted_average"] = upvoted_weighted_average
+            entity["year"] = tag_info["start_time"].year
+            entity["month"] = tag_info["start_time"].month
+            entity["day"] = tag_info["start_time"].day
+            # Saves the entity
+            datastore_client.put(entity)
 
-                # Saves the entity
-                # datastore_client.put(entity)
             # update the time period
+            # setup and execute get
+            kind = "Tags"
+            target_key = datastore_client.key(kind,tag_info["entry_id"])
+            curr_tag_info = datastore_client.get(target_key)
+            curr_tag_info["start_time"]=tag_info["end_time"]
+            curr_tag_info["end_time"]=tag_info["end_time"]+datetime.timedelta(1)
+            curr_tag_info["processed_posts"]+=filtered_post_total
+            # return query results to the user
+            datastore_client.put(curr_tag_info)
 
-    reval = {
-        "upvote_total": filtered_upvote_total,
-        "post_total": post_total,
-        "filtered_post_total": filtered_post_total,
-        "posts": analysis,
-        "weighted_average":normal_weighted_average,
-        "upvoted_weighted_average":upvoted_weighted_average
-    }
-
-    return reval
+    return "", 204
 
 
 def get_wykop_posts(
@@ -319,7 +326,7 @@ def get_wykop_posts(
             {"content": re.sub(r"\(\)", "", post["content"]), "votes": post["votes"]}
             for post in unlinked
         ]
-
+    
     post_total = json.loads(
         requests.get(
             f"https://wykop.pl/api/v3/search/entries",
@@ -337,6 +344,11 @@ def get_wykop_posts(
             },
         ).content.decode("utf-8")
     )["pagination"]["total"]
+
+    try:
+        post_total = int(post_total)
+    except:
+        post_total=0
 
     return cleaned, filtered_upvote_total, filtered_post_total, post_total
 
