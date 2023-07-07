@@ -356,7 +356,7 @@ def get_wykop_posts(
 @app.route("/api/get")
 def get_sentiments():
     # basically, get a http GET request, use info provided by the request to query db and return data
-    tags = request.args.getlist("tags")
+    tags = request.args.getlist("tag")
     # if tags = empty => assume querying for everything
     if len(tags) is 0:
         tracked_list = get_taglist()
