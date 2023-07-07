@@ -179,7 +179,7 @@ def update_sentiment_data():
         "posts":analysis,
     }
 
-    return analysis
+    return reval
 
 
 def get_wykop_posts(
