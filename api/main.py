@@ -111,7 +111,7 @@ def update_sentiment_data():
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
         if diff.days >= 1:
             # get posts for that day
-            post_list = get_wykop_posts(
+            post_list, filtered_upvote_total, filtered_post_total, post_total = get_wykop_posts(
                 api_token,
                 tag_info["tag_name"],
                 tag_info["start_time"],
@@ -171,6 +171,13 @@ def update_sentiment_data():
                 # Saves the entity
                 #datastore_client.put(entity)
             # update the time period
+
+    reval={
+        "upvote_total":filtered_upvote_total,
+        "post_total":post_total,
+        "filtered_post_total":filtered_post_total,
+        "posts":analysis,
+    }
 
     return analysis
 
@@ -236,7 +243,29 @@ def get_wykop_posts(
         unlinked = [{"content":re.sub(r"https?://\S+(?=[\s)])", "", post["content"]),"votes":post["votes"]} for post in unmarked]
         cleaned = [{"content":re.sub(r"\(\)", "", post["content"]),"votes":post["votes"]} for post in unlinked]
 
-    return cleaned
+    post_total = json.loads(
+        requests.get(
+            f"https://wykop.pl/api/v3/search/entries",
+            headers={
+                "accept": "application/json",
+                "authorization": f"Bearer {api_token}",
+            },
+            params={
+                "query": f"#{tag_name}",
+                "sort": "newest",
+                "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
+                "page": "1",
+                "limit": "25",
+            },
+        ).content.decode("utf-8")
+    )["pagination"]["total"]
+    filtered_upvote_total = 0
+    filtered_post_total = len(cleaned)
+    for post in cleaned:
+        filtered_upvote_total+=post["votes"]
+
+    return cleaned, filtered_upvote_total, filtered_post_total, post_total
 
 
 ### --- things below to be done later ---
