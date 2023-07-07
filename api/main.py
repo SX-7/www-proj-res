@@ -111,7 +111,12 @@ def update_sentiment_data():
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
         if diff.days >= 1:
             # get posts for that day
-            post_list, filtered_upvote_total, filtered_post_total, post_total = get_wykop_posts(
+            (
+                post_list,
+                filtered_upvote_total,
+                filtered_post_total,
+                post_total,
+            ) = get_wykop_posts(
                 api_token,
                 tag_info["tag_name"],
                 tag_info["start_time"],
@@ -139,7 +144,12 @@ def update_sentiment_data():
                             "target_language_code": "en",
                         }
                     )
-                    translations.append({"content":response.translations[0].translated_text,"votes":post["votes"]})
+                    translations.append(
+                        {
+                            "content": response.translations[0].translated_text,
+                            "votes": post["votes"],
+                        }
+                    )
                 # put the translated text into AI
                 client = language_v1.LanguageServiceClient()
                 type_ = language_v1.Document.Type.PLAIN_TEXT
@@ -150,33 +160,67 @@ def update_sentiment_data():
                     document = {"type_": type_, "content": content["content"]}
                     response = client.analyze_sentiment(request={"document": document})
                     sentiment = response.document_sentiment
-                    w_avg_top = w_avg_top + sentiment.score * sentiment.magnitude
-                    w_avg_bot = w_avg_bot + sentiment.magnitude
                     analysis.append(
-                        {"content":content["content"],"score": sentiment.score, "magnitude": sentiment.magnitude,"votes":content["votes"]}
+                        {
+                            "content": content["content"],
+                            "score": sentiment.score,
+                            "magnitude": sentiment.magnitude,
+                            "votes": content["votes"],
+                        }
                     )
-                
+
+                normal_weighted_average = sum(
+                    (
+                        x * y
+                        for x, y in zip(
+                            (postx["score"] for postx in analysis),
+                            (posty["magnitude"] for posty in analysis),
+                        )
+                    )
+                ) / sum((postz["magnitude"] for postz in analysis))
+
+                upvoted_weighted_average = sum(
+                    (
+                        x * y * z
+                        for x, y, z in zip(
+                            (postx["score"] for postx in analysis),
+                            (posty["magnitude"] for posty in analysis),
+                            (postz["votes"] for postz in analysis),
+                        )
+                    )
+                ) / sum(
+                    (
+                        a * b
+                        for a, b in zip(
+                            (posta["magnitude"] for posta in analysis),
+                            (postb["votes"] for postb in analysis),
+                        )
+                    )
+                )
+
                 # put the sentiment data back into db
                 # The kind for the new entity
-                #kind = "Sentiment"
+                # kind = "Sentiment"
                 # The Cloud Datastore key for the new entity
-                #entity_key = datastore_client.key(kind)
+                # entity_key = datastore_client.key(kind)
 
                 # Prepares the new entity
-                #entity = datastore.Entity(key=entity_key)
-                #entity["content"] = content
-                #entity["score"] = sentiment.score
-                #entity["magnitude"] = sentiment.magnitude
+                # entity = datastore.Entity(key=entity_key)
+                # entity["content"] = content
+                # entity["score"] = sentiment.score
+                # entity["magnitude"] = sentiment.magnitude
 
                 # Saves the entity
-                #datastore_client.put(entity)
+                # datastore_client.put(entity)
             # update the time period
 
-    reval={
-        "upvote_total":filtered_upvote_total,
-        "post_total":post_total,
-        "filtered_post_total":filtered_post_total,
-        "posts":analysis,
+    reval = {
+        "upvote_total": filtered_upvote_total,
+        "post_total": post_total,
+        "filtered_post_total": filtered_post_total,
+        "posts": analysis,
+        "weighted_average":normal_weighted_average,
+        "upvoted_weighted_average":upvoted_weighted_average
     }
 
     return reval
@@ -209,7 +253,7 @@ def get_wykop_posts(
     )
     results = list()
     for v in wykop_data["data"]:
-        results.append({"content":v["content"],"votes":v["votes"]["up"]})
+        results.append({"content": v["content"], "votes": v["votes"]["up"]})
     if wykop_data["pagination"]["total"] > 25:
         page = 2
         while wykop_data["pagination"]["total"] > (page - 1) * 25:
@@ -232,16 +276,49 @@ def get_wykop_posts(
                 ).content.decode("utf-8")
             )
             for v in wykop_data["data"]:
-                results.append({"content":v["content"],"votes":v["votes"]["up"]})
+                results.append({"content": v["content"], "votes": v["votes"]["up"]})
             page += 1
+
+    filtered_upvote_total = 0
+    filtered_post_total = len(results)
+    for post in results:
+        filtered_upvote_total += post["votes"]
+
     if len(results) is not 0:
         # format posts
-        untagged = [{"content":re.sub(r"\#\S+\b\s?", "", post["content"]),"votes":post["votes"]} for post in results]
-        newlined = [{"content":re.sub(r"\n", " ", post["content"]),"votes":post["votes"]} for post in untagged]
-        carriaged = [{"content":re.sub(r"\r", "", post["content"]),"votes":post["votes"]} for post in newlined]
-        unmarked = [{"content":re.sub(r"[\[\*\]]", "", post["content"]),"votes":post["votes"]} for post in carriaged]
-        unlinked = [{"content":re.sub(r"https?://\S+(?=[\s)])", "", post["content"]),"votes":post["votes"]} for post in unmarked]
-        cleaned = [{"content":re.sub(r"\(\)", "", post["content"]),"votes":post["votes"]} for post in unlinked]
+        untagged = [
+            {
+                "content": re.sub(r"\#\S+\b\s?", "", post["content"]),
+                "votes": post["votes"],
+            }
+            for post in results
+        ]
+        newlined = [
+            {"content": re.sub(r"\n", " ", post["content"]), "votes": post["votes"]}
+            for post in untagged
+        ]
+        carriaged = [
+            {"content": re.sub(r"\r", "", post["content"]), "votes": post["votes"]}
+            for post in newlined
+        ]
+        unmarked = [
+            {
+                "content": re.sub(r"[\[\*\]]", "", post["content"]),
+                "votes": post["votes"],
+            }
+            for post in carriaged
+        ]
+        unlinked = [
+            {
+                "content": re.sub(r"https?://\S+(?=[\s)])", "", post["content"]),
+                "votes": post["votes"],
+            }
+            for post in unmarked
+        ]
+        cleaned = [
+            {"content": re.sub(r"\(\)", "", post["content"]), "votes": post["votes"]}
+            for post in unlinked
+        ]
 
     post_total = json.loads(
         requests.get(
@@ -260,10 +337,6 @@ def get_wykop_posts(
             },
         ).content.decode("utf-8")
     )["pagination"]["total"]
-    filtered_upvote_total = 0
-    filtered_post_total = len(cleaned)
-    for post in cleaned:
-        filtered_upvote_total+=post["votes"]
 
     return cleaned, filtered_upvote_total, filtered_post_total, post_total
 
