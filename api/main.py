@@ -19,8 +19,8 @@ app = Flask(__name__)
 @app.route("/api/token/refresh")
 def refresh_token():
     # Check if it's a crontab job
-    if 'X-Appengine-Cron' not in request.headers:
-        return 'Unauthorized request',401
+    if "X-Appengine-Cron" not in request.headers:
+        return "Unauthorized request", 401
     # here we basically wanna implement the entirety of token scrapper
     # GET request for a sample page, to get the vendor info
     page = requests.get("https://wykop.pl/faq")
@@ -64,7 +64,7 @@ def refresh_token():
     kind = "ApiTokens"
     record_name = "token"
     entity_key = datastore_client.key(kind, record_name)
-    entity = datastore.Entity(key=entity_key,exclude_from_indexes=("api_token",))
+    entity = datastore.Entity(key=entity_key, exclude_from_indexes=("api_token",))
     entity["api_token"] = api_token
     datastore_client.put(entity=entity)
     return "", 204
@@ -89,12 +89,8 @@ def get_small_taglist():
     query = datastore_client.query(kind=kind)
     data = list(query.fetch())
     # return query results to the user
-    return [
-        {
-            "tag_name": entity["tag_name"]
-        }
-        for entity in data
-    ]
+    return [{"tag_name": entity["tag_name"]} for entity in data]
+
 
 def get_taglist():
     # iniialize db connection
@@ -119,8 +115,8 @@ def get_taglist():
 @app.route("/api/update")
 def update_sentiment_data():
     # Check if it's a crontab job
-    if 'X-Appengine-Cron' not in request.headers:
-        return 'Unauthorized request',401
+    if "X-Appengine-Cron" not in request.headers:
+        return "Unauthorized request", 401
     # step 1. get basic data
     api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
@@ -146,7 +142,7 @@ def update_sentiment_data():
             # filter out short posts
             filtered = [post for post in post_list if len(post["content"]) > 200]
             datastore_client = datastore.Client()
-            if len(filtered) is not 0:
+            if len(filtered) != 0:
                 # put them into google translate
                 client = translate.TranslationServiceClient()
                 kind = "ProjectId"
@@ -226,7 +222,19 @@ def update_sentiment_data():
             entity_key = datastore_client.key(kind)
 
             # Prepares the new entity
-            entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","year","month","day"))
+            entity = datastore.Entity(
+                key=entity_key,
+                exclude_from_indexes=(
+                    "upvote_total",
+                    "post_total",
+                    "filtered_post_total",
+                    "weighted_average",
+                    "upvoted_weighted_average",
+                    "year",
+                    "month",
+                    "day",
+                )
+            )
             entity["upvote_total"] = filtered_upvote_total
             entity["post_total"] = post_total
             entity["filtered_post_total"] = filtered_post_total
@@ -310,7 +318,7 @@ def get_wykop_posts(
     for post in results:
         filtered_upvote_total += post["votes"]
 
-    if len(results) is not 0:
+    if len(results) != 0:
         # format posts
         untagged = [
             {
@@ -377,7 +385,7 @@ def get_sentiments():
     # basically, get a http GET request, use info provided by the request to query db and return data
     tags = request.args.getlist("tag")
     # if tags = empty => assume querying for everything
-    if len(tags) is 0:
+    if len(tags) == 0:
         tracked_list = get_taglist()
         tags = [tag["tag_name"] for tag in tracked_list]
     # iniialize db connection
@@ -389,21 +397,21 @@ def get_sentiments():
         query = datastore_client.query(kind=kind)
         data = query.fetch()
         # return query results to the user
-        tag_dict={}
+        tag_dict = {}
         for entry in data:
             day = str(entry["day"])
-            if len(day) is 1:
+            if len(day) == 1:
                 day = "0" + day
             month = str(entry["month"])
-            if len(month) is 1:
+            if len(month) == 1:
                 month = "0" + month
-            
+
             tag_dict[f"{str(entry['year'])}-{month}-{day}"] = {
-                "upvote_total":entry["upvote_total"],
-                "post_total":entry["post_total"],
-                "filtered_post_total":entry["filtered_post_total"],
-                "weighted_average":entry["weighted_average"],
-                "upvoted_weighted_average":entry["upvoted_weighted_average"]
+                "upvote_total": entry["upvote_total"],
+                "post_total": entry["post_total"],
+                "filtered_post_total": entry["filtered_post_total"],
+                "weighted_average": entry["weighted_average"],
+                "upvoted_weighted_average": entry["upvoted_weighted_average"],
             }
         reval[tag] = tag_dict
     return reval
