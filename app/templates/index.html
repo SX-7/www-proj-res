@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
       font-family: 'Inter', sans-serif;
     }
 
-    h1, h3 {
+    h1,
+    h3 {
       font-weight: bold;
     }
 
@@ -34,26 +36,9 @@
       margin-top: 50px;
       margin-bottom: 100px;
     }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      align-items: center;
-      margin-top: 20px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-right: 20px;
-    }
-
-    .legend-item span {
-      margin-left: 5px;
-    }
   </style>
 </head>
+
 <body>
   <nav class="navbar navbar-dark bg-dark">
     <div class="container">
@@ -74,123 +59,128 @@
     <div class="text-center mt-3">
       <select class="form-select" aria-label="Wybierz tag" onchange="generateChart(this.value)">
         <option selected disabled>Wybierz tag</option>
-        <!-- Javascript code will populate options dynamically -->
       </select>
     </div>
   </div>
 
   <div class="container">
     <div id="chartContainer" style="height: 400px;"></div>
-    <div class="legend" id="legendContainer"></div>
+    <div id="legendContainer"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   <script>
-    // Function to populate the tag select options
-    function populateTagOptions() {
-      fetch('/api/tracked_tags')
-        .then(response => response.json())
-        .then(data => {
-          var selectElement = document.querySelector('.form-select');
-
-          data.forEach(tag => {
-            var option = document.createElement('option');
-            option.value = tag.tag_name;
-            option.textContent = tag.tag_name;
-            selectElement.appendChild(option);
-          });
+    // Pobieranie dostępnych tagów z API
+    fetch("/api/available_tags")
+      .then(response => response.json())
+      .then(data => {
+        var select = document.querySelector("select");
+        data.forEach(tag => {
+          var option = document.createElement("option");
+          option.value = tag;
+          option.textContent = tag;
+          select.appendChild(option);
         });
-    }
-
-    // Call the function to populate tag options on page load
-    populateTagOptions();
+      })
+      .catch(error => {
+        console.error("Wystąpił błąd podczas pobierania tagów z API:", error);
+      });
 
     function generateChart(tag) {
-      fetch(`/api/get?tag=${tag}`)
+      var url = "/api/get?tag=" + tag;
+
+      fetch(url)
         .then(response => response.json())
         .then(data => {
-          var chartData = [
-            {
-              type: "line",
-              name: "Weighted Average",
-              showInLegend: true,
-              lineColor: "orange",
-              markerType: "none",
-              dataPoints: getChartData(data.weighted_average)
-            },
-            {
-              type: "line",
-              name: "Upvoted Weighted Average",
-              showInLegend: true,
-              lineColor: "green",
-              markerType: "none",
-              dataPoints: getChartData(data.upvoted_weighted_average)
-            }
-          ];
-
-          var chart = new CanvasJS.Chart("chartContainer", {
-            animationEnabled: true,
-            theme: "light2",
-            title: {
-              text: "Wykres dla tagu: " + tag
-            },
-            axisX: {
-              title: "Data"
-            },
-            axisY: {
-              title: "Wartość"
-            },
-            legend: {
-              verticalAlign: "center",
-              horizontalAlign: "right",
-              reversed: true
-            },
-            data: chartData
-          });
-
-          chart.render();
-
-          generateLegend(chartData);
+          var chartData = transformData(data);
+          renderChart(chartData);
+          renderLegend(chartData);
+        })
+        .catch(error => {
+          console.error("Wystąpił błąd podczas pobierania danych z API:", error);
         });
     }
 
-    function getChartData(data) {
-      var dataPoints = [];
+    function transformData(data) {
+      var chartData = [];
 
-      for (var i = 0; i < data.length; i++) {
-        var dataPoint = {
-          label: data[i].date,
-          y: data[i].value
-        };
-        dataPoints.push(dataPoint);
+      // Tworzenie serii danych na podstawie otrzymanych danych z API
+      for (var date in data) {
+        var values = data[date];
+        chartData.push({
+          date: new Date(date),
+          weighted_average: values.weighted_average,
+          upvoted_weighted_average: values.upvoted_weighted_average
+        });
       }
 
-      return dataPoints;
+      return chartData;
     }
 
-    function generateLegend(chartData) {
-      var legendContainer = document.getElementById('legendContainer');
-      legendContainer.innerHTML = '';
-
-      chartData.forEach(data => {
-        var legendItem = document.createElement('div');
-        legendItem.classList.add('legend-item');
-
-        var legendColor = document.createElement('div');
-        legendColor.style.backgroundColor = data.lineColor;
-        legendColor.style.width = '20px';
-        legendColor.style.height = '20px';
-
-        var legendText = document.createElement('span');
-        legendText.textContent = data.name;
-
-        legendItem.appendChild(legendColor);
-        legendItem.appendChild(legendText);
-
-        legendContainer.appendChild(legendItem);
+    function renderChart(data) {
+      var chart = new CanvasJS.Chart("chartContainer", {
+        animationEnabled: true,
+        theme: "light2",
+        title: {
+          text: "Wykres dla wybranego tagu"
+        },
+        axisX: {
+          title: "Data",
+          valueFormatString: "YYYY-MM-DD"
+        },
+        axisY: {
+          title: "Wartość"
+        },
+        data: [
+          {
+            type: "line",
+            name: "Weighted Average",
+            showInLegend: true,
+            dataPoints: data.map(item => ({
+              x: item.date,
+              y: item.weighted_average
+            }))
+          },
+          {
+            type: "line",
+            name: "Upvoted Weighted Average",
+            showInLegend: true,
+            dataPoints: data.map(item => ({
+              x: item.date,
+              y: item.upvoted_weighted_average
+            }))
+          }
+        ]
       });
+
+      chart.render();
+    }
+
+    function renderLegend(data) {
+      var legendContainer = document.getElementById("legendContainer");
+      legendContainer.innerHTML = "";
+
+      for (var key in data[0]) {
+        if (key !== "date") {
+          var color = getRandomColor();
+          var value = key.replace(/_/g, " ");
+          var legendItem = document.createElement("div");
+          legendItem.innerHTML = `<span class="legend-color" style="background-color:${color}"></span>${value}`;
+          legendContainer.appendChild(legendItem);
+        }
+      }
+    }
+
+    function getRandomColor() {
+      var letters = "0123456789ABCDEF";
+      var color = "#";
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
     }
   </script>
 </body>
+
 </html>
