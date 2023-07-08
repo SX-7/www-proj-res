@@ -40,7 +40,7 @@
   <nav class="navbar navbar-dark bg-dark">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img src="logo.png" alt="Logo" class="logo">
+        <img src="../static/logo.png" alt="Logo" class="logo">
         <span>WykOpinion</span>
       </a>
       <ul class="navbar-nav ml-auto">
@@ -56,9 +56,7 @@
     <div class="text-center mt-3">
       <select class="form-select" aria-label="Wybierz tag" onchange="generateChart(this.value)">
         <option selected disabled>Wybierz tag</option>
-        <option value="polityka">polityka</option>
-        <option value="gospodarka">gospodarka</option>
-        <option value="inne">inne</option>
+        <!-- Javascript code will populate options dynamically -->
       </select>
     </div>
   </div>
@@ -70,6 +68,25 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   <script>
+    // Function to populate the tag select options
+    function populateTagOptions() {
+      fetch('/api/tracked_tags')
+        .then(response => response.json())
+        .then(data => {
+          var selectElement = document.querySelector('.form-select');
+
+          data.forEach(tag => {
+            var option = document.createElement('option');
+            option.value = tag.tag_name;
+            option.textContent = tag.tag_name;
+            selectElement.appendChild(option);
+          });
+        });
+    }
+
+    // Call the function to populate tag options on page load
+    populateTagOptions();
+
     function generateChart(tag) {
       fetch(`/api/get?tag=${tag}`)
         .then(response => response.json())
