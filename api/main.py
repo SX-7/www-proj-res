@@ -18,11 +18,7 @@ app = Flask(__name__)
 # https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/token/refresh")
 def refresh_token():
-    if 'X-Appengine-Cron' in request.headers:
-        header_val = str(request.headers["X-Appengine-Cron"])
-        if header_val is not "true":
-            return 'Unauthorized request',401
-    else:
+    if 'X-Appengine-Cron' not in request.headers:
         return 'Unauthorized request',401
     # here we basically wanna implement the entirety of token scrapper
     # GET request for a sample page, to get the vendor info
