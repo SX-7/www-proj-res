@@ -59,7 +59,6 @@
     <div class="text-center mt-3">
       <select class="form-select" aria-label="Wybierz tag" onchange="generateChart(this.value)">
         <option selected disabled>Wybierz tag</option>
-        <!-- Javascript code will populate options dynamically -->
       </select>
     </div>
   </div>
@@ -73,14 +72,14 @@
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   <script>
     function fetchTags() {
-      fetch("/api/available_tags")
+      fetch("/api/tracked_tags")
         .then(response => response.json())
         .then(data => {
           var select = document.querySelector("select");
           data.forEach(tag => {
             var option = document.createElement("option");
-            option.value = tag;
-            option.textContent = tag;
+            option.value = tag.tag_name;
+            option.textContent = tag.tag_name;
             select.appendChild(option);
           });
         })
@@ -95,7 +94,7 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          var chartData = transformData(data);
+          var chartData = transformData(data[tag]);
           renderChart(chartData);
           renderLegend();
         })
@@ -107,13 +106,11 @@
     function transformData(data) {
       var chartData = [];
 
-      // Tworzenie serii danych na podstawie otrzymanych danych z API
       for (var date in data) {
-        var values = data[date];
         chartData.push({
           date: new Date(date),
-          weighted_average: values.weighted_average,
-          upvoted_weighted_average: values.upvoted_weighted_average
+          weighted_average: data[date].weighted_average,
+          upvoted_weighted_average: data[date].upvoted_weighted_average
         });
       }
 
@@ -163,7 +160,7 @@
       var legendContainer = document.getElementById("legendContainer");
       legendContainer.innerHTML = "";
 
-      var colors = ["orange", "green"]; // Kolor linii dla poszczególnych danych
+      var colors = ["orange", "green"];
 
       var legendItems = [
         { label: "Weighted Average", color: colors[0] },
