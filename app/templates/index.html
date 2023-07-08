@@ -116,6 +116,9 @@
             title: {
               text: "Wykres dla tagu: " + tag
             },
+            axisX: {
+              title: "Data"
+            },
             axisY: {
               title: "Wartość"
             },
@@ -124,112 +127,80 @@
               horizontalAlign: "right",
               reversed: true
             },
-            data: getChartData(data[tag])
+            data: [
+              {
+                type: "line",
+                name: "Weighted Average",
+                showInLegend: true,
+                lineColor: "orange",
+                markerType: "none",
+                dataPoints: getChartData(data[tag].weighted_average)
+              },
+              {
+                type: "line",
+                name: "Upvoted Weighted Average",
+                showInLegend: true,
+                lineColor: "green",
+                markerType: "none",
+                dataPoints: getChartData(data[tag].upvoted_weighted_average)
+              }
+            ]
           });
 
           chart.render();
 
-          generateLegend(data[tag]);
+          generateLegend();
         });
     }
 
-    function getChartData(tagData) {
-      var data = [];
+    function getChartData(data) {
+      var dataPoints = [];
 
-      for (var key in tagData) {
-        var dataPoints = [];
-
-        for (var date in tagData[key]) {
-          var dataPoint = {
-            label: date,
-            y: tagData[key][date]
-          };
-          dataPoints.push(dataPoint);
-        }
-
-        var lineColor = getRandomColor();
-
-        var dataSeries = {
-          type: "line",
-          name: key,
-          showInLegend: true,
-          lineColor: lineColor,
-          markerType: "none",
-          dataPoints: dataPoints
+      for (var i = 0; i < data.length; i++) {
+        var dataPoint = {
+          label: data[i].date,
+          y: data[i].value
         };
-
-        data.push(dataSeries);
+        dataPoints.push(dataPoint);
       }
 
-      return data;
+      return dataPoints;
     }
 
-    function generateLegend(tagData) {
+    function generateLegend() {
       var legendContainer = document.getElementById('legendContainer');
       legendContainer.innerHTML = '';
 
-      for (var key in tagData) {
-        var legendItem = document.createElement('div');
-        legendItem.classList.add('legend-item');
+      var legendItem1 = document.createElement('div');
+      legendItem1.classList.add('legend-item');
 
-        var legendColor = document.createElement('div');
-        legendColor.style.backgroundColor = getLineColor(key);
-        legendColor.style.width = '20px';
-        legendColor.style.height = '20px';
+      var legendColor1 = document.createElement('div');
+      legendColor1.style.backgroundColor = "orange";
+      legendColor1.style.width = '20px';
+      legendColor1.style.height = '20px';
 
-        var legendText = document.createElement('span');
-        legendText.textContent = getLegendLabel(key);
+      var legendText1 = document.createElement('span');
+      legendText1.textContent = "Weighted Average";
 
-        legendItem.appendChild(legendColor);
-        legendItem.appendChild(legendText);
+      legendItem1.appendChild(legendColor1);
+      legendItem1.appendChild(legendText1);
 
-        legendContainer.appendChild(legendItem);
-      }
-    }
+      var legendItem2 = document.createElement('div');
+      legendItem2.classList.add('legend-item');
 
-    function getRandomColor() {
-      var letters = '0123456789ABCDEF';
-      var color = '#';
+      var legendColor2 = document.createElement('div');
+      legendColor2.style.backgroundColor = "green";
+      legendColor2.style.width = '20px';
+      legendColor2.style.height = '20px';
 
-      for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
+      var legendText2 = document.createElement('span');
+      legendText2.textContent = "Upvoted Weighted Average";
 
-      return color;
-    }
+      legendItem2.appendChild(legendColor2);
+      legendItem2.appendChild(legendText2);
 
-    function getLineColor(key) {
-      switch (key) {
-        case "upvote_total":
-          return "orange";
-        case "post_total":
-          return "blue";
-        case "filtered_post_total":
-          return "green";
-        case "weighted_average":
-          return "red";
-        case "upvoted_weighted_average":
-          return "purple";
-        default:
-          return "black";
-      }
-    }
-
-    function getLegendLabel(key) {
-      switch (key) {
-        case "upvote_total":
-          return "Upvote Total";
-        case "post_total":
-          return "Post Total";
-        case "filtered_post_total":
-          return "Filtered Post Total";
-        case "weighted_average":
-         return "Weighted Average";
-        case "upvoted_weighted_average":
-          return "Upvoted Weighted Average";
-        default:
-          return "";
-      }
+      legendContainer.appendChild(legendItem1);
+      legendContainer.appendChild(legendItem2);
     }
   </script>
 </body>
