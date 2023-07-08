@@ -18,6 +18,12 @@ app = Flask(__name__)
 # https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/token/refresh")
 def refresh_token():
+    if 'X-Appengine-Cron' in request.headers:
+        header_val = str(request.headers["X-Appengine-Cron"])
+        if header_val is not "true":
+            return 'Unauthorized request',401
+    else:
+        return 'Unauthorized request',401
     # here we basically wanna implement the entirety of token scrapper
     # GET request for a sample page, to get the vendor info
     page = requests.get("https://wykop.pl/faq")
@@ -67,7 +73,6 @@ def refresh_token():
     return "", 204
 
 
-@app.route("/api/token")
 def get_token():
     # iniialize db connection
     datastore_client = datastore.Client()
@@ -80,6 +85,20 @@ def get_token():
 
 
 @app.route("/api/tracked_tags")
+def get_small_taglist():
+    datastore_client = datastore.Client()
+    # setup and execute query
+    kind = "Tags"
+    query = datastore_client.query(kind=kind)
+    data = list(query.fetch())
+    # return query results to the user
+    return [
+        {
+            "tag_name": entity["tag_name"]
+        }
+        for entity in data
+    ]
+
 def get_taglist():
     # iniialize db connection
     datastore_client = datastore.Client()
