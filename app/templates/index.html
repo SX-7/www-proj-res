@@ -179,10 +179,12 @@
       var postTotal = document.getElementById("postTotal");
       var upvoteTotal = document.getElementById("upvoteTotal");
 
-      filteredPostTotal.textContent = "Filtered Post Total: " + data.filtered_post_total;
-      postTotal.textContent = "Post Total: " + data.post_total;
-      upvoteTotal.textContent = "Upvote Total: " + data.upvote_total;
+      for (var date in data) {
+      filteredPostTotal.textContent = "Filtered Post Total: " + data[date].filtered_post_total;
+      postTotal.textContent = "Post Total: " + data[date].post_total;
+      upvoteTotal.textContent = "Upvote Total: " + data[date].upvote_total;
     }
+  }
 
     fetchTags();
   </script>
