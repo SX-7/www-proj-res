@@ -38,7 +38,7 @@
     .legend {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
       margin-top: 20px;
     }
@@ -119,6 +119,11 @@
             axisY: {
               title: "Wartość"
             },
+            legend: {
+              verticalAlign: "center",
+              horizontalAlign: "right",
+              reversed: true
+            },
             data: getChartData(data[tag])
           });
 
@@ -129,21 +134,32 @@
     }
 
     function getChartData(tagData) {
-      var dataPoints = [];
+      var data = [];
 
-      for (var date in tagData) {
-        var dataPoint = {
-          label: date,
-          y: tagData[date].weighted_average
+      for (var key in tagData) {
+        var dataPoints = [];
+
+        for (var date in tagData[key]) {
+          var dataPoint = {
+            label: date,
+            y: tagData[key][date]
+          };
+          dataPoints.push(dataPoint);
+        }
+
+        var lineColor = getRandomColor();
+
+        var dataSeries = {
+          type: "line",
+          name: key,
+          showInLegend: true,
+          lineColor: lineColor,
+          markerType: "none",
+          dataPoints: dataPoints
         };
-        dataPoints.push(dataPoint);
-      }
 
-      var data = [{
-        type: "line",
-        name: "Weighted Average",
-        dataPoints: dataPoints
-      }];
+        data.push(dataSeries);
+      }
 
       return data;
     }
@@ -152,17 +168,17 @@
       var legendContainer = document.getElementById('legendContainer');
       legendContainer.innerHTML = '';
 
-      for (var date in tagData) {
+      for (var key in tagData) {
         var legendItem = document.createElement('div');
         legendItem.classList.add('legend-item');
 
         var legendColor = document.createElement('div');
-        legendColor.style.backgroundColor = getRandomColor();
+        legendColor.style.backgroundColor = getLineColor(key);
         legendColor.style.width = '20px';
         legendColor.style.height = '20px';
 
         var legendText = document.createElement('span');
-        legendText.textContent = date;
+        legendText.textContent = getLegendLabel(key);
 
         legendItem.appendChild(legendColor);
         legendItem.appendChild(legendText);
@@ -180,6 +196,40 @@
       }
 
       return color;
+    }
+
+    function getLineColor(key) {
+      switch (key) {
+        case "upvote_total":
+          return "orange";
+        case "post_total":
+          return "blue";
+        case "filtered_post_total":
+          return "green";
+        case "weighted_average":
+          return "red";
+        case "upvoted_weighted_average":
+          return "purple";
+        default:
+          return "black";
+      }
+    }
+
+    function getLegendLabel(key) {
+      switch (key) {
+        case "upvote_total":
+          return "Upvote Total";
+        case "post_total":
+          return "Post Total";
+        case "filtered_post_total":
+          return "Filtered Post Total";
+        case "weighted_average":
+         return "Weighted Average";
+        case "upvoted_weighted_average":
+          return "Upvoted Weighted Average";
+        default:
+          return "";
+      }
     }
   </script>
 </body>
