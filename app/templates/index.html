@@ -110,6 +110,25 @@
       fetch(`/api/get?tag=${tag}`)
         .then(response => response.json())
         .then(data => {
+          var chartData = [
+            {
+              type: "line",
+              name: "Weighted Average",
+              showInLegend: true,
+              lineColor: "orange",
+              markerType: "none",
+              dataPoints: getChartData(data.weighted_average)
+            },
+            {
+              type: "line",
+              name: "Upvoted Weighted Average",
+              showInLegend: true,
+              lineColor: "green",
+              markerType: "none",
+              dataPoints: getChartData(data.upvoted_weighted_average)
+            }
+          ];
+
           var chart = new CanvasJS.Chart("chartContainer", {
             animationEnabled: true,
             theme: "light2",
@@ -127,29 +146,12 @@
               horizontalAlign: "right",
               reversed: true
             },
-            data: [
-              {
-                type: "line",
-                name: "Weighted Average",
-                showInLegend: true,
-                lineColor: "orange",
-                markerType: "none",
-                dataPoints: getChartData(data[tag].weighted_average)
-              },
-              {
-                type: "line",
-                name: "Upvoted Weighted Average",
-                showInLegend: true,
-                lineColor: "green",
-                markerType: "none",
-                dataPoints: getChartData(data[tag].upvoted_weighted_average)
-              }
-            ]
+            data: chartData
           });
 
           chart.render();
 
-          generateLegend();
+          generateLegend(chartData);
         });
     }
 
@@ -167,40 +169,27 @@
       return dataPoints;
     }
 
-    function generateLegend() {
+    function generateLegend(chartData) {
       var legendContainer = document.getElementById('legendContainer');
       legendContainer.innerHTML = '';
 
-      var legendItem1 = document.createElement('div');
-      legendItem1.classList.add('legend-item');
+      chartData.forEach(data => {
+        var legendItem = document.createElement('div');
+        legendItem.classList.add('legend-item');
 
-      var legendColor1 = document.createElement('div');
-      legendColor1.style.backgroundColor = "orange";
-      legendColor1.style.width = '20px';
-      legendColor1.style.height = '20px';
+        var legendColor = document.createElement('div');
+        legendColor.style.backgroundColor = data.lineColor;
+        legendColor.style.width = '20px';
+        legendColor.style.height = '20px';
 
-      var legendText1 = document.createElement('span');
-      legendText1.textContent = "Weighted Average";
+        var legendText = document.createElement('span');
+        legendText.textContent = data.name;
 
-      legendItem1.appendChild(legendColor1);
-      legendItem1.appendChild(legendText1);
+        legendItem.appendChild(legendColor);
+        legendItem.appendChild(legendText);
 
-      var legendItem2 = document.createElement('div');
-      legendItem2.classList.add('legend-item');
-
-      var legendColor2 = document.createElement('div');
-      legendColor2.style.backgroundColor = "green";
-      legendColor2.style.width = '20px';
-      legendColor2.style.height = '20px';
-
-      var legendText2 = document.createElement('span');
-      legendText2.textContent = "Upvoted Weighted Average";
-
-      legendItem2.appendChild(legendColor2);
-      legendItem2.appendChild(legendText2);
-
-      legendContainer.appendChild(legendItem1);
-      legendContainer.appendChild(legendItem2);
+        legendContainer.appendChild(legendItem);
+      });
     }
   </script>
 </body>
