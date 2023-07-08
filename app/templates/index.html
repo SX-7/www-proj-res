@@ -40,7 +40,7 @@
   <nav class="navbar navbar-dark bg-dark">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img src="../static/logo.png" alt="Logo" class="logo">
+        <img src="logo.png" alt="Logo" class="logo">
         <span>WykOpinion</span>
       </a>
       <ul class="navbar-nav ml-auto">
@@ -71,141 +71,43 @@
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   <script>
     function generateChart(tag) {
-      var chart = new CanvasJS.Chart("chartContainer", {
-        animationEnabled: true,
-        theme: "light2",
-        title: {
-          text: "Wykres dla tagu: " + tag
-        },
-        axisY: {
-          title: "Wartość"
-        },
-        data: getChartData(tag)
-      });
+      fetch(`/api/get?tag=${tag}`)
+        .then(response => response.json())
+        .then(data => {
+          var chart = new CanvasJS.Chart("chartContainer", {
+            animationEnabled: true,
+            theme: "light2",
+            title: {
+              text: "Wykres dla tagu: " + tag
+            },
+            axisY: {
+              title: "Wartość"
+            },
+            data: getChartData(data[tag])
+          });
 
-      chart.render();
+          chart.render();
+        });
     }
 
-    function getChartData(tag) {
+    function getChartData(tagData) {
       var dataPoints = [];
 
-      switch (tag) {
-        case "polityka":
-          dataPoints = [
-            {
-              type: "line",
-              name: "Funkcja 1",
-              dataPoints: [
-                { label: "Styczeń", y: 50 },
-                { label: "Luty", y: 60 },
-                { label: "Marzec", y: 70 },
-                { label: "Kwiecień", y: 60 },
-                { label: "Maj", y: 70 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 2",
-              dataPoints: [
-                { label: "Styczeń", y: 30 },
-                { label: "Luty", y: 40 },
-                { label: "Marzec", y: 50 },
-                { label: "Kwiecień", y: 45 },
-                { label: "Maj", y: 55 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 3",
-              dataPoints: [
-                { label: "Styczeń", y: 70 },
-                { label: "Luty", y: 60 },
-                { label: "Marzec", y: 50 },
-                { label: "Kwiecień", y: 40 },
-                { label: "Maj", y: 30 },
-              ]
-            }
-          ];
-          break;
-        case "gospodarka":
-          dataPoints = [
-            {
-              type: "line",
-              name: "Funkcja 1",
-              dataPoints: [
-                { label: "Styczeń", y: 20 },
-                { label: "Luty", y: 30 },
-                { label: "Marzec", y: 40 },
-                { label: "Kwiecień", y: 35 },
-                { label: "Maj", y: 45 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 2",
-              dataPoints: [
-                { label: "Styczeń", y: 40 },
-                { label: "Luty", y: 50 },
-                { label: "Marzec", y: 60 },
-                { label: "Kwiecień", y: 55 },
-                { label: "Maj", y: 65 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 3",
-              dataPoints: [
-                { label: "Styczeń", y: 60 },
-                { label: "Luty", y: 50 },
-                { label: "Marzec", y: 40 },
-                { label: "Kwiecień", y: 30 },
-                { label: "Maj", y: 20 },
-              ]
-            }
-          ];
-          break;
-        case "inne":
-          dataPoints = [
-            {
-              type: "line",
-              name: "Funkcja 1",
-              dataPoints: [
-                { label: "Styczeń", y: 10 },
-                { label: "Luty", y: 20 },
-                { label: "Marzec", y: 15 },
-                { label: "Kwiecień", y: 25 },
-                { label: "Maj", y: 30 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 2",
-              dataPoints: [
-                { label: "Styczeń", y: 30 },
-                { label: "Luty", y: 40 },
-                { label: "Marzec", y: 35 },
-                { label: "Kwiecień", y: 45 },
-                { label: "Maj", y: 50 },
-              ]
-            },
-            {
-              type: "line",
-              name: "Funkcja 3",
-              dataPoints: [
-                { label: "Styczeń", y: 20 },
-                { label: "Luty", y: 30 },
-                { label: "Marzec", y: 25 },
-                { label: "Kwiecień", y: 35 },
-                { label: "Maj", y: 40 },
-              ]
-            }
-          ];
-          break;
-        default:
-          break;
+      for (var date in tagData) {
+        var dataPoint = {
+          label: date,
+          y: tagData[date].weighted_average
+        };
+        dataPoints.push(dataPoint);
       }
 
-      return dataPoints;
+      var data = [{
+        type: "line",
+        name: "Weighted Average",
+        dataPoints: dataPoints
+      }];
+
+      return data;
     }
   </script>
 </body>
