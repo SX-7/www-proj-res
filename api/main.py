@@ -64,7 +64,7 @@ def refresh_token():
     kind = "ApiTokens"
     record_name = "token"
     entity_key = datastore_client.key(kind, record_name)
-    entity = datastore.Entity(key=entity_key)
+    entity = datastore.Entity(key=entity_key,exclude_from_indexes=("api_token",))
     entity["api_token"] = api_token
     datastore_client.put(entity=entity)
     return "", 204
@@ -226,7 +226,7 @@ def update_sentiment_data():
             entity_key = datastore_client.key(kind)
 
             # Prepares the new entity
-            entity = datastore.Entity(key=entity_key)
+            entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","year","month","day"))
             entity["upvote_total"] = filtered_upvote_total
             entity["post_total"] = post_total
             entity["filtered_post_total"] = filtered_post_total
