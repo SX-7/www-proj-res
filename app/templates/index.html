@@ -34,6 +34,24 @@
       margin-top: 50px;
       margin-bottom: 100px;
     }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+    }
+
+    .legend-item span {
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
@@ -63,6 +81,7 @@
 
   <div class="container">
     <div id="chartContainer" style="height: 400px;"></div>
+    <div class="legend" id="legendContainer"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
@@ -104,6 +123,8 @@
           });
 
           chart.render();
+
+          generateLegend(data[tag]);
         });
     }
 
@@ -125,6 +146,40 @@
       }];
 
       return data;
+    }
+
+    function generateLegend(tagData) {
+      var legendContainer = document.getElementById('legendContainer');
+      legendContainer.innerHTML = '';
+
+      for (var date in tagData) {
+        var legendItem = document.createElement('div');
+        legendItem.classList.add('legend-item');
+
+        var legendColor = document.createElement('div');
+        legendColor.style.backgroundColor = getRandomColor();
+        legendColor.style.width = '20px';
+        legendColor.style.height = '20px';
+
+        var legendText = document.createElement('span');
+        legendText.textContent = date;
+
+        legendItem.appendChild(legendColor);
+        legendItem.appendChild(legendText);
+
+        legendContainer.appendChild(legendItem);
+      }
+    }
+
+    function getRandomColor() {
+      var letters = '0123456789ABCDEF';
+      var color = '#';
+
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+
+      return color;
     }
   </script>
 </body>
