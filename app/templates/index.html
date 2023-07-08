@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WykOpinion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    h1, h3 {
+      font-weight: bold;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar-brand span {
+      font-weight: bold;
+    }
+
+    .navbar-brand img {
+      height: 50px;
+      width: 50px;
+    }
+
+    #chartContainer {
+      margin-top: 50px;
+      margin-bottom: 100px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="logo.png" alt="Logo" class="logo">
+        <span>WykOpinion</span>
+      </a>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="about.html">About project</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h1 class="text-center">Wybierz swój tag:</h1>
+    <div class="text-center mt-3">
+      <select class="form-select" aria-label="Wybierz tag" onchange="generateChart(this.value)">
+        <option selected disabled>Wybierz tag</option>
+        <option value="polityka">polityka</option>
+        <option value="gospodarka">gospodarka</option>
+        <option value="inne">inne</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="chartContainer" style="height: 400px;"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  <script>
+    function generateChart(tag) {
+      var chart = new CanvasJS.Chart("chartContainer", {
+        animationEnabled: true,
+        theme: "light2",
+        title: {
+          text: "Wykres dla tagu: " + tag
+        },
+        axisY: {
+          title: "Wartość"
+        },
+        data: getChartData(tag)
+      });
+
+      chart.render();
+    }
+
+    function getChartData(tag) {
+      var dataPoints = [];
+
+      switch (tag) {
+        case "polityka":
+          dataPoints = [
+            {
+              type: "line",
+              name: "Funkcja 1",
+              dataPoints: [
+                { label: "Styczeń", y: 50 },
+                { label: "Luty", y: 60 },
+                { label: "Marzec", y: 70 },
+                { label: "Kwiecień", y: 60 },
+                { label: "Maj", y: 70 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 2",
+              dataPoints: [
+                { label: "Styczeń", y: 30 },
+                { label: "Luty", y: 40 },
+                { label: "Marzec", y: 50 },
+                { label: "Kwiecień", y: 45 },
+                { label: "Maj", y: 55 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 3",
+              dataPoints: [
+                { label: "Styczeń", y: 70 },
+                { label: "Luty", y: 60 },
+                { label: "Marzec", y: 50 },
+                { label: "Kwiecień", y: 40 },
+                { label: "Maj", y: 30 },
+              ]
+            }
+          ];
+          break;
+        case "gospodarka":
+          dataPoints = [
+            {
+              type: "line",
+              name: "Funkcja 1",
+              dataPoints: [
+                { label: "Styczeń", y: 20 },
+                { label: "Luty", y: 30 },
+                { label: "Marzec", y: 40 },
+                { label: "Kwiecień", y: 35 },
+                { label: "Maj", y: 45 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 2",
+              dataPoints: [
+                { label: "Styczeń", y: 40 },
+                { label: "Luty", y: 50 },
+                { label: "Marzec", y: 60 },
+                { label: "Kwiecień", y: 55 },
+                { label: "Maj", y: 65 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 3",
+              dataPoints: [
+                { label: "Styczeń", y: 60 },
+                { label: "Luty", y: 50 },
+                { label: "Marzec", y: 40 },
+                { label: "Kwiecień", y: 30 },
+                { label: "Maj", y: 20 },
+              ]
+            }
+          ];
+          break;
+        case "inne":
+          dataPoints = [
+            {
+              type: "line",
+              name: "Funkcja 1",
+              dataPoints: [
+                { label: "Styczeń", y: 10 },
+                { label: "Luty", y: 20 },
+                { label: "Marzec", y: 15 },
+                { label: "Kwiecień", y: 25 },
+                { label: "Maj", y: 30 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 2",
+              dataPoints: [
+                { label: "Styczeń", y: 30 },
+                { label: "Luty", y: 40 },
+                { label: "Marzec", y: 35 },
+                { label: "Kwiecień", y: 45 },
+                { label: "Maj", y: 50 },
+              ]
+            },
+            {
+              type: "line",
+              name: "Funkcja 3",
+              dataPoints: [
+                { label: "Styczeń", y: 20 },
+                { label: "Luty", y: 30 },
+                { label: "Marzec", y: 25 },
+                { label: "Kwiecień", y: 35 },
+                { label: "Maj", y: 40 },
+              ]
+            }
+          ];
+          break;
+        default:
+          break;
+      }
+
+      return dataPoints;
+    }
+  </script>
+</body>
+</html>
