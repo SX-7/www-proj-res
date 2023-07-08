@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 import requests
 
 app = Flask(__name__)
@@ -14,8 +14,12 @@ def hello():
     # upvote total - how many upvotes in posts over 100 upvotes
     # weighted average - positive/negative perception, calculated with score as values, and confidence as weights
     # upvoted weighted average - upvotes are also added as weights, makes more upvoted posts more impactful
-    r = requests.get("https://wykopinion.com/api/get")
-    return r.json()
+
+
+    # r = requests.get("https://wykopinion.com/api/get")
+    # return r.json()
+    return render_template('index.html')
+
 
 
 if __name__ == "__main__":
