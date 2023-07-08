@@ -71,21 +71,22 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   <script>
-    // Pobieranie dostępnych tagów z API
-    fetch("/api/available_tags")
-      .then(response => response.json())
-      .then(data => {
-        var select = document.querySelector("select");
-        data.forEach(tag => {
-          var option = document.createElement("option");
-          option.value = tag;
-          option.textContent = tag;
-          select.appendChild(option);
+    function fetchTags() {
+      fetch("/api/available_tags")
+        .then(response => response.json())
+        .then(data => {
+          var select = document.querySelector("select");
+          data.forEach(tag => {
+            var option = document.createElement("option");
+            option.value = tag;
+            option.textContent = tag;
+            select.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error("Wystąpił błąd podczas pobierania tagów z API:", error);
         });
-      })
-      .catch(error => {
-        console.error("Wystąpił błąd podczas pobierania tagów z API:", error);
-      });
+    }
 
     function generateChart(tag) {
       var url = "/api/get?tag=" + tag;
@@ -95,7 +96,7 @@
         .then(data => {
           var chartData = transformData(data);
           renderChart(chartData);
-          renderLegend(chartData);
+          renderLegend();
         })
         .catch(error => {
           console.error("Wystąpił błąd podczas pobierania danych z API:", error);
@@ -157,29 +158,25 @@
       chart.render();
     }
 
-    function renderLegend(data) {
+    function renderLegend() {
       var legendContainer = document.getElementById("legendContainer");
       legendContainer.innerHTML = "";
 
-      for (var key in data[0]) {
-        if (key !== "date") {
-          var color = getRandomColor();
-          var value = key.replace(/_/g, " ");
-          var legendItem = document.createElement("div");
-          legendItem.innerHTML = `<span class="legend-color" style="background-color:${color}"></span>${value}`;
-          legendContainer.appendChild(legendItem);
-        }
-      }
+      var colors = ["orange", "green"]; // Kolor linii dla poszczególnych danych
+
+      var legendItems = [
+        { label: "Weighted Average", color: colors[0] },
+        { label: "Upvoted Weighted Average", color: colors[1] }
+      ];
+
+      legendItems.forEach(item => {
+        var legendItem = document.createElement("div");
+        legendItem.innerHTML = `<span class="legend-color" style="background-color:${item.color}"></span>${item.label}`;
+        legendContainer.appendChild(legendItem);
+      });
     }
 
-    function getRandomColor() {
-      var letters = "0123456789ABCDEF";
-      var color = "#";
-      for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
+    fetchTags();
   </script>
 </body>
 
