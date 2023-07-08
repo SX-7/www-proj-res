@@ -18,6 +18,7 @@ app = Flask(__name__)
 # https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/token/refresh")
 def refresh_token():
+    # Check if it's a crontab job
     if 'X-Appengine-Cron' not in request.headers:
         return 'Unauthorized request',401
     # here we basically wanna implement the entirety of token scrapper
@@ -117,6 +118,9 @@ def get_taglist():
 
 @app.route("/api/update")
 def update_sentiment_data():
+    # Check if it's a crontab job
+    if 'X-Appengine-Cron' not in request.headers:
+        return 'Unauthorized request',401
     # step 1. get basic data
     api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
