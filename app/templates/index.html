@@ -36,6 +36,20 @@
       margin-top: 50px;
       margin-bottom: 100px;
     }
+
+    .info-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .info-item {
+      flex-basis: 30%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
   </style>
 </head>
 
@@ -64,8 +78,12 @@
   </div>
 
   <div class="container">
+    <div class="info-container">
+      <div class="info-item" id="filteredPostTotal"></div>
+      <div class="info-item" id="postTotal"></div>
+      <div class="info-item" id="upvoteTotal"></div>
+    </div>
     <div id="chartContainer" style="height: 400px;"></div>
-    <div id="legendContainer"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
@@ -96,7 +114,7 @@
         .then(data => {
           var chartData = transformData(data[tag]);
           renderChart(chartData);
-          renderLegend();
+          renderInfo(data[tag]);
         })
         .catch(error => {
           console.error("Wystąpił błąd podczas pobierania danych z API:", error);
@@ -156,22 +174,14 @@
       chart.render();
     }
 
-    function renderLegend() {
-      var legendContainer = document.getElementById("legendContainer");
-      legendContainer.innerHTML = "";
+    function renderInfo(data) {
+      var filteredPostTotal = document.getElementById("filteredPostTotal");
+      var postTotal = document.getElementById("postTotal");
+      var upvoteTotal = document.getElementById("upvoteTotal");
 
-      var colors = ["orange", "green"];
-
-      var legendItems = [
-        { label: "Weighted Average", color: colors[0] },
-        { label: "Upvoted Weighted Average", color: colors[1] }
-      ];
-
-      legendItems.forEach(item => {
-        var legendItem = document.createElement("div");
-        legendItem.innerHTML = `<span class="legend-color" style="background-color:${item.color}"></span>${item.label}`;
-        legendContainer.appendChild(legendItem);
-      });
+      filteredPostTotal.textContent = "Filtered Post Total: " + data.filtered_post_total;
+      postTotal.textContent = "Post Total: " + data.post_total;
+      upvoteTotal.textContent = "Upvote Total: " + data.upvote_total;
     }
 
     fetchTags();
