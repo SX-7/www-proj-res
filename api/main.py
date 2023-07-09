@@ -182,6 +182,13 @@ def update_sentiment_data():
                             "votes": content["votes"],
                         }
                     )
+                    ek=datastore_client.key("Debug")
+                    en = datastore.Entity(key=ek)
+                    en["content"]=content["content"]
+                    en["score"]=sentiment.score
+                    en["magnitude"]=sentiment.magnitude
+                    en["votes"]=content["votes"]
+                    datastore_client.put(en)
 
                 normal_weighted_average = sum(
                     (
