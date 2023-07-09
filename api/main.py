@@ -105,7 +105,7 @@ def get_taglist():
             "entry_id": entity.key.id,
             "tag_name": entity["tag_name"],
             "start_time": entity["start_time"],
-            "end_time": entity["end_time"],
+            "current_time": entity["current_time"],
             "processed_posts": entity["processed_posts"],
         }
         for entity in data
@@ -123,7 +123,7 @@ def update_sentiment_data():
     # step 2. check every tag
     for tag_info in taglist:
         # if there's over 24 hours since a last update
-        diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["start_time"]
+        diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["current_time"]
         if diff.days >= 1:
             # get posts for that day
             (
@@ -134,8 +134,8 @@ def update_sentiment_data():
             ) = get_wykop_posts(
                 api_token,
                 tag_info["tag_name"],
-                tag_info["start_time"],
-                tag_info["end_time"],
+                tag_info["current_time"],
+                tag_info["current_time"]+datetime.timedelta(1),
             )
             normal_weighted_average = 0
             upvoted_weighted_average = 0
@@ -222,15 +222,15 @@ def update_sentiment_data():
             entity_key = datastore_client.key(kind)
 
             # Prepares the new entity
-            entity = datastore.Entity(key=entity_key)
+            entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","upvoted_weighted_average"))
             entity["upvote_total"] = filtered_upvote_total
             entity["post_total"] = post_total
             entity["filtered_post_total"] = filtered_post_total
             entity["weighted_average"] = normal_weighted_average
             entity["upvoted_weighted_average"] = upvoted_weighted_average
-            entity["year"] = tag_info["start_time"].year
-            entity["month"] = tag_info["start_time"].month
-            entity["day"] = tag_info["start_time"].day
+            entity["year"] = tag_info["current_time"].year
+            entity["month"] = tag_info["current_time"].month
+            entity["day"] = tag_info["current_time"].day
             # Saves the entity
             datastore_client.put(entity)
 
@@ -239,9 +239,8 @@ def update_sentiment_data():
             kind = "Tags"
             target_key = datastore_client.key(kind, tag_info["entry_id"])
             curr_tag_info = datastore_client.get(target_key)
-            curr_tag_info["start_time"] = tag_info["end_time"]
-            curr_tag_info["end_time"] = tag_info["end_time"] + datetime.timedelta(1)
-            curr_tag_info["processed_posts"] += filtered_post_total
+            curr_tag_info["current_time"] = tag_info["current_time"] + datetime.timedelta(1)
+            curr_tag_info["processed_posts"] += len(filtered)
             # return query results to the user
             datastore_client.put(curr_tag_info)
 

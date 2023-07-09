@@ -3,3 +3,8 @@ cron:
   url: /api/token/refresh
   schedule: every 12 hours
   target: api
+
+- description: "recurring database update"
+  url: /api/update
+  schedule: every 12 hours
+  target: api
