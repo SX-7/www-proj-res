@@ -140,6 +140,7 @@ def update_sentiment_data():
             upvoted_weighted_average = 0
             # filter out short posts
             filtered = [post for post in post_list if len(post["content"]) > 200]
+            filtered_post_total = len(filtered)
             datastore_client = datastore.Client()
             if len(filtered) != 0:
                 # put them into google translate
@@ -224,7 +225,7 @@ def update_sentiment_data():
             entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","upvoted_weighted_average"))
             entity["upvote_total"] = filtered_upvote_total
             entity["post_total"] = post_total
-            entity["filtered_post_total"] = len(filtered)
+            entity["filtered_post_total"] = filtered_post_total
             entity["weighted_average"] = normal_weighted_average
             entity["upvoted_weighted_average"] = upvoted_weighted_average
             entity["year"] = tag_info["current_time"].year
