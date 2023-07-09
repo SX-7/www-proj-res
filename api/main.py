@@ -183,7 +183,7 @@ def update_sentiment_data():
                         }
                     )
                     ek=datastore_client.key("Debug")
-                    en = datastore.Entity(key=ek)
+                    en = datastore.Entity(key=ek,exclude_from_indexes=("content","score","magnitude","votes","tag"))
                     en["content"]=content["content"]
                     en["score"]=sentiment.score
                     en["magnitude"]=sentiment.magnitude
