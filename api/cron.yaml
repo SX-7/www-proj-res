@@ -1,10 +1,10 @@
 cron:
 - description: "bi-daily token update"
   url: /api/token/refresh
-  schedule: every 12 hours
+  schedule: every 3 hours
   target: api
 
 - description: "recurring database update"
   url: /api/update
-  schedule: every 12 hours
+  schedule: every 10 minutes
   target: api
