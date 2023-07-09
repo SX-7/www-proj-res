@@ -8,6 +8,8 @@ import requests
 import base64
 import json
 import datetime
+import time
+import random
 
 app = Flask(__name__)
 
@@ -125,6 +127,7 @@ def update_sentiment_data():
         # if there's over 24 hours since a last update
         diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["current_time"]
         if diff.days >= 1:
+            time.sleep(random.uniform(1,5))
             # get posts for that day
             (
                 post_list,
