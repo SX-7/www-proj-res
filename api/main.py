@@ -182,35 +182,39 @@ def update_sentiment_data():
                             "votes": content["votes"],
                         }
                     )
-
-                normal_weighted_average = sum(
-                    (
-                        x * y
-                        for x, y in zip(
-                            (postx["score"] for postx in analysis),
-                            (posty["magnitude"] for posty in analysis),
+                try:
+                    normal_weighted_average = sum(
+                        (
+                            x * y
+                            for x, y in zip(
+                                (postx["score"] for postx in analysis),
+                                (posty["magnitude"] for posty in analysis),
+                            )
+                        )
+                    ) / sum((postz["magnitude"] for postz in analysis))
+                except:
+                    normal_weighted_average = 0
+                try:
+                    upvoted_weighted_average = sum(
+                        (
+                            x * y * z
+                            for x, y, z in zip(
+                                (postx["score"] for postx in analysis),
+                                (posty["magnitude"] for posty in analysis),
+                                (postz["votes"] for postz in analysis),
+                            )
+                        )
+                    ) / sum(
+                        (
+                            a * b
+                            for a, b in zip(
+                                (posta["magnitude"] for posta in analysis),
+                                (postb["votes"] for postb in analysis),
+                            )
                         )
                     )
-                ) / sum((postz["magnitude"] for postz in analysis))
-
-                upvoted_weighted_average = sum(
-                    (
-                        x * y * z
-                        for x, y, z in zip(
-                            (postx["score"] for postx in analysis),
-                            (posty["magnitude"] for posty in analysis),
-                            (postz["votes"] for postz in analysis),
-                        )
-                    )
-                ) / sum(
-                    (
-                        a * b
-                        for a, b in zip(
-                            (posta["magnitude"] for posta in analysis),
-                            (postb["votes"] for postb in analysis),
-                        )
-                    )
-                )
+                except:
+                    upvoted_weighted_average=0
 
             # put the sentiment data back into db
             # general idea is to use seperate kind (TagInfo) to store well, tag info
