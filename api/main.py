@@ -188,6 +188,7 @@ def update_sentiment_data():
                     en["score"]=sentiment.score
                     en["magnitude"]=sentiment.magnitude
                     en["votes"]=content["votes"]
+                    en["tag"]=tag_info["tag_name"]
                     datastore_client.put(en)
 
                 normal_weighted_average = sum(
