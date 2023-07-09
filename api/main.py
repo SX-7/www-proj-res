@@ -129,7 +129,6 @@ def update_sentiment_data():
             (
                 post_list,
                 filtered_upvote_total,
-                filtered_post_total,
                 post_total,
             ) = get_wykop_posts(
                 api_token,
@@ -225,7 +224,7 @@ def update_sentiment_data():
             entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","upvoted_weighted_average"))
             entity["upvote_total"] = filtered_upvote_total
             entity["post_total"] = post_total
-            entity["filtered_post_total"] = filtered_post_total
+            entity["filtered_post_total"] = len(filtered)
             entity["weighted_average"] = normal_weighted_average
             entity["upvoted_weighted_average"] = upvoted_weighted_average
             entity["year"] = tag_info["current_time"].year
@@ -301,7 +300,6 @@ def get_wykop_posts(
             page += 1
 
     filtered_upvote_total = 0
-    filtered_post_total = len(results)
     for post in results:
         filtered_upvote_total += post["votes"]
 
@@ -364,7 +362,7 @@ def get_wykop_posts(
     except:
         post_total = 0
 
-    return cleaned, filtered_upvote_total, filtered_post_total, post_total
+    return cleaned, filtered_upvote_total, post_total
 
 
 @app.route("/api/get")
