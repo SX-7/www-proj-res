@@ -340,23 +340,7 @@ def get_wykop_posts(
             for post in unlinked
         ]
 
-    post_total = json.loads(
-        requests.get(
-            f"https://wykop.pl/api/v3/search/entries",
-            headers={
-                "accept": "application/json",
-                "authorization": f"Bearer {api_token}",
-            },
-            params={
-                "query": f"#{tag_name}",
-                "sort": "newest",
-                "date_from": f'{start_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                "date_to": f'{end_time.strftime("%Y-%m-%d %H:%M:%S")}',
-                "page": "1",
-                "limit": "25",
-            },
-        ).content.decode("utf-8")
-    )["pagination"]["total"]
+    post_total = wykop_data["pagination"]["total"]
 
     try:
         post_total = int(post_total)
