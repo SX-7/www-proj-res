@@ -6,5 +6,5 @@ cron:
 
 - description: "database update"
   url: /api/update
-  schedule: every 1 minutes from 06:00 to 22:00
+  schedule: every 1 minutes
   target: api
