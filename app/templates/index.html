@@ -176,20 +176,17 @@
 
       for (var date in data) {
         var filteredPostTotal = data[date].filtered_post_total;
-        if (filteredPostTotal !== 0) {
-          var weightedAverage = data[date].weighted_average;
-          var upvotedWeightedAverage = data[date].upvoted_weighted_average;
-          chartData.push({
-            date: new Date(date),
-            weighted_average: weightedAverage,
-            upvoted_weighted_average: upvotedWeightedAverage
-          });
-          plotlyData.x.push(date);
-          plotlyData.y.push(weightedAverage);
-        } else {
-          plotlyData.x.push(date);
-          plotlyData.y.push(null);
-        }
+        var weightedAverage = data[date].weighted_average;
+        var upvotedWeightedAverage = data[date].upvoted_weighted_average;
+
+        chartData.push({
+          date: new Date(date),
+          weighted_average: filteredPostTotal !== 0 ? weightedAverage : null,
+          upvoted_weighted_average: filteredPostTotal !== 0 ? upvotedWeightedAverage : null
+        });
+
+        plotlyData.x.push(date);
+        plotlyData.y.push(filteredPostTotal !== 0 ? weightedAverage : null);
       }
 
       var trace = {
