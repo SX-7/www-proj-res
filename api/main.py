@@ -115,14 +115,21 @@ def get_taglist():
 
 
 @app.route("/api/update")
-def update_sentiment_data():
+def update_sentiment_data_manager():
     # Check if it's a crontab job
     if "X-Appengine-Cron" not in request.headers:
         return "Unauthorized request", 401
+    # get the time 
+    start_time = time.time()
+    while time.time() - start_time < 20:
+        update_sentiment_data()
+    return "",204
+
+def update_sentiment_data():
     # step 1. get basic data
     api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
-    # step 2. check every tag
+    # step 2. check every tag, we want the one which hasn't been updated yet
     chosen_tag = {"current_time":datetime.datetime.now(tz=datetime.timezone.utc)}
     for tag_info in taglist:
         if tag_info["current_time"]<chosen_tag["current_time"]:
@@ -264,8 +271,6 @@ def update_sentiment_data():
         curr_tag_info["processed_posts"] += len(filtered)
         # return query results to the user
         datastore_client.put(curr_tag_info)
-
-    return "", 204
 
 
 def get_wykop_posts(
