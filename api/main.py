@@ -123,7 +123,7 @@ def update_sentiment_data():
     api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
     # step 2. check every tag
-    chosen_tag = {"current_time":datetime.datetime.now(tz="utc")}
+    chosen_tag = {"current_time":datetime.datetime.now(tz=datetime.timezone.utc)}
     for tag_info in taglist:
         if tag_info["current_time"]<chosen_tag["current_time"]:
             chosen_tag=tag_info
