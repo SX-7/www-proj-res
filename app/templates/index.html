@@ -57,20 +57,24 @@
       margin-bottom: 20px;
     }
 
-    th,
-    td {
+    th {
       padding: 10px;
       border: 1px solid #ccc;
-    }
-
-    th {
       background-color: #f2f2f2;
       font-weight: bold;
       text-align: center;
     }
 
     td {
+      padding: 10px;
+      border: 1px solid #ccc;
       text-align: center;
+    }
+
+    /* Dodatkowy styl dla wykresu */
+    .plot-container {
+      width: 100%;
+      height: 400px;
     }
   </style>
 </head>
@@ -99,7 +103,7 @@
   </div>
 
   <div class="container">
-    <div id="chartContainer" style="height: 400px;"></div>
+    <div id="chartContainer" class="plot-container"></div>
     <table>
       <thead>
         <tr>
@@ -162,27 +166,31 @@
     }
 
     function transformData(data) {
-      var chartData = {
-        x: [],
-        y: [],
-        name: [],
-        type: 'scatter'
-      };
+      var xData = [];
+      var yData = [];
+      var nameData = [];
 
       for (var date in data) {
-        chartData.x.push(date);
-        chartData.y.push(data[date].filtered_post_total);
-        chartData.name.push(date);
+        xData.push(date);
+        yData.push(data[date].filtered_post_total);
+        nameData.push(date);
       }
 
-      return [chartData];
+      return [
+        {
+          x: xData,
+          y: yData,
+          name: nameData,
+          type: 'scatter'
+        }
+      ];
     }
 
     function renderChart(data) {
       var layout = {
         title: 'Wykres dla wybranego tagu',
         xaxis: { title: 'Data' },
-        yaxis: { title: 'Wartość sentymentu' }
+        yaxis: { title: 'Wartość sentymentu', autorange: true, tickmode: 'auto', nticks: 10 }
       };
 
       Plotly.newPlot('chartContainer', data, layout);
