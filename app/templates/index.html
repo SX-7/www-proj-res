@@ -190,36 +190,39 @@
           y: weightedAverage,
           type: 'line',
           name: 'Weighted Average',
-          hovertemplate: '%{y:.3e}',
+          hovertemplate: '%{y:.3f}',
         },
         {
           x: dates,
           y: upvotedWeightedAverage,
           type: 'line',
           name: 'Upvoted Weighted Average',
-          hovertemplate: '%{y:.3e}',
+          hovertemplate: '%{y:.3f}',
         }
       ];
 
       var layout = {
-        title: 'Wykres dla wybranego tagu',
+        title: 'Wykres dla danego tagu: ' + tag,
         xaxis: {
           title: 'Data',
           type: 'date',
           tickformat: '%Y-%m-%d'
         },
         yaxis: {
-          title: 'Wartość sentymentu',
+          title: 'Wartość',
           range: [min_y - step, max_y + step],
           tickmode: 'linear',
           dtick: step,
-          hoverformat: '.3e'
+          hoverformat: '.3f'
         },
         legend: {
           orientation: 'h',
           x: 0.5,
           xanchor: 'center',
-          y: 1.1
+          y: 1.1,
+          font: {
+            size: 16
+          }
         }
       };
 
