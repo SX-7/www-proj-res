@@ -139,13 +139,26 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          var chartData = transformData(data[tag]);
+          var filteredData = filterData(data[tag]);
+          var chartData = transformData(filteredData);
           renderChart(chartData);
-          renderTable(data[tag]);
+          renderTable(filteredData);
         })
         .catch(error => {
           console.error("Wystąpił błąd podczas pobierania danych z API:", error);
         });
+    }
+
+    function filterData(data) {
+      var filteredData = {};
+
+      for (var date in data) {
+        if (data[date].filtered_post_total !== 0) {
+          filteredData[date] = data[date];
+        }
+      }
+
+      return filteredData;
     }
 
     function transformData(data) {
@@ -191,7 +204,7 @@
             showInLegend: true,
             dataPoints: data.map(item => ({
               x: item.date,
-              y:item.upvoted_weighted_average
+              y: item.upvoted_weighted_average
             }))
           }
         ]
