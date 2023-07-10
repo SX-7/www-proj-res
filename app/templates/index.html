@@ -141,7 +141,7 @@
         .then(data => {
           var filteredData = filterData(data[tag]);
           var chartData = transformData(filteredData);
-          renderChart(chartData);
+          renderChart(chartData, tag);
           renderTable(filteredData);
         })
         .catch(error => {
@@ -175,7 +175,7 @@
       return chartData;
     }
 
-    function renderChart(data) {
+    function renderChart(data, tag) {
       var dates = data.map(item => item.date);
       var weightedAverage = data.map(item => item.weighted_average);
       var upvotedWeightedAverage = data.map(item => item.upvoted_weighted_average);
