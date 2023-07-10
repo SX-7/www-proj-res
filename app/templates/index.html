@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WykOpinion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
@@ -72,23 +73,6 @@
     td {
       text-align: center;
     }
-
-    /* Grupowanie stylów dla wykresu */
-    .chart-title {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: center;
-    }
-
-    .legend-item {
-      margin-right: 10px;
-    }
   </style>
 </head>
 
@@ -131,7 +115,6 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
     function fetchTags() {
       fetch("/api/tracked_tags")
@@ -157,7 +140,7 @@
         .then(response => response.json())
         .then(data => {
           var chartData = transformData(data[tag]);
-          renderChart(chartData, tag);
+          renderChart(chartData);
           renderTable(data[tag]);
         })
         .catch(error => {
@@ -167,50 +150,58 @@
 
     function transformData(data) {
       var chartData = [];
-      var plotlyData = {
-        x: [],
-        y: [],
-        mode: 'lines+markers',
-        connectgaps: true
-      };
 
       for (var date in data) {
-        var filteredPostTotal = data[date].filtered_post_total;
-        if (filteredPostTotal !== 0) {
-          var weightedAverage = data[date].weighted_average;
-          var upvotedWeightedAverage = data[date].upvoted_weighted_average;
-          chartData.push({
-            date: new Date(date),
-            weighted_average: weightedAverage,
-            upvoted_weighted_average: upvotedWeightedAverage
-          });
-          plotlyData.x.push(date);
-          plotlyData.y.push(weightedAverage);
-        }
+        chartData.push({
+          date: date,
+          weighted_average: data[date].weighted_average,
+          upvoted_weighted_average: data[date].upvoted_weighted_average
+        });
       }
 
-      var trace = {
-        x: plotlyData.x,
-        y: plotlyData.y,
-        mode: 'lines+markers',
-        connectgaps: true
-      };
+      return chartData;
+    }
+
+    function renderChart(data) {
+      var dates = data.map(item => item.date);
+      var weightedAverage = data.map(item => item.weighted_average);
+      var upvotedWeightedAverage = data.map(item => item.upvoted_weighted_average);
+
+      var max_y = Math.max(...upvotedWeightedAverage);
+      var min_y = Math.min(...upvotedWeightedAverage);
+      var step = (max_y - min_y) / 10;
+
+      var chartData = [
+        {
+          x: dates,
+          y: weightedAverage,
+          type: 'line',
+          name: 'Weighted Average'
+        },
+        {
+          x: dates,
+          y: upvotedWeightedAverage,
+          type: 'line',
+          name: 'Upvoted Weighted Average'
+        }
+      ];
 
       var layout = {
-        title: "Wykres dla tagu: " + tag,
-        showlegend: true,
+        title: 'Wykres dla wybranego tagu',
         xaxis: {
-          title: "Data"
+          title: 'Data',
+          type: 'date',
+          tickformat: '%Y-%m-%d'
         },
         yaxis: {
-          title: "Wartość sentymentu"
+          title: 'Wartość',
+          range: [min_y - step, max_y + step],
+          tickmode: 'linear',
+          dtick: step
         }
       };
 
-      var data = [trace];
-
-      Plotly.newPlot('chartContainer', data, layout);
-      return chartData;
+      Plotly.newPlot('chartContainer', chartData, layout);
     }
 
     function renderTable(data) {
@@ -218,17 +209,14 @@
       dataTable.innerHTML = "";
 
       for (var date in data) {
-        var filteredPostTotal = data[date].filtered_post_total;
-        if (filteredPostTotal !== 0) {
-          var row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${date}</td>
-            <td>${filteredPostTotal}</td>
-            <td>${data[date].post_total}</td>
-            <td>${data[date].upvote_total}</td>
-          `;
-          dataTable.appendChild(row);
-        }
+        var row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${date}</td>
+          <td>${data[date].filtered_post_total}</td>
+          <td>${data[date].post_total}</td>
+          <td>${data[date].upvote_total}</td>
+        `;
+        dataTable.appendChild(row);
       }
     }
 
