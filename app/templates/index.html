@@ -189,13 +189,15 @@
           x: dates,
           y: weightedAverage,
           type: 'line',
-          name: 'Weighted Average'
+          name: 'Weighted Average',
+          hovertemplate: '%{y:.3e}',
         },
         {
           x: dates,
           y: upvotedWeightedAverage,
           type: 'line',
-          name: 'Upvoted Weighted Average'
+          name: 'Upvoted Weighted Average',
+          hovertemplate: '%{y:.3e}',
         }
       ];
 
@@ -207,10 +209,17 @@
           tickformat: '%Y-%m-%d'
         },
         yaxis: {
-          title: 'Wartość',
+          title: 'Wartość sentymentu',
           range: [min_y - step, max_y + step],
           tickmode: 'linear',
-          dtick: step
+          dtick: step,
+          hoverformat: '.3e'
+        },
+        legend: {
+          orientation: 'h',
+          x: 0.5,
+          xanchor: 'center',
+          y: 1.1
         }
       };
 
