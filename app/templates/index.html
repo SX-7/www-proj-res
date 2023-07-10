@@ -103,7 +103,7 @@
     <table>
       <thead>
         <tr>
-          <th>Date</th>
+          <th>Data</th>
           <th>Filtered Post Total</th>
           <th>Post Total</th>
           <th>Upvote Total</th>
@@ -114,7 +114,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
-  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
     function fetchTags() {
       fetch("/api/tracked_tags")
@@ -162,55 +162,30 @@
     }
 
     function transformData(data) {
-      var chartData = [];
+      var chartData = {
+        x: [],
+        y: [],
+        name: [],
+        type: 'scatter'
+      };
 
       for (var date in data) {
-        chartData.push({
-          date: new Date(date),
-          weighted_average: data[date].weighted_average,
-          upvoted_weighted_average: data[date].upvoted_weighted_average
-        });
+        chartData.x.push(date);
+        chartData.y.push(data[date].filtered_post_total);
+        chartData.name.push(date);
       }
 
-      return chartData;
+      return [chartData];
     }
 
     function renderChart(data) {
-      var chart = new CanvasJS.Chart("chartContainer", {
-        animationEnabled: true,
-        theme: "light2",
-        title: {
-          text: "Wykres dla wybranego tagu"
-        },
-        axisX: {
-          title: "Data",
-          valueFormatString: "YYYY-MM-DD"
-        },
-        axisY: {
-          title: "Wartość"
-        },
-        data: [{
-            type: "line",
-            name: "Weighted Average",
-            showInLegend: true,
-            dataPoints: data.map(item => ({
-              x: item.date,
-              y: item.weighted_average
-            }))
-          },
-          {
-            type: "line",
-            name: "Upvoted Weighted Average",
-            showInLegend: true,
-            dataPoints: data.map(item => ({
-              x: item.date,
-              y: item.upvoted_weighted_average
-            }))
-          }
-        ]
-      });
+      var layout = {
+        title: 'Wykres dla wybranego tagu',
+        xaxis: { title: 'Data' },
+        yaxis: { title: 'Wartość sentymentu' }
+      };
 
-      chart.render();
+      Plotly.newPlot('chartContainer', data, layout);
     }
 
     function renderTable(data) {
