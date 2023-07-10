@@ -174,17 +174,27 @@ def update_sentiment_data():
                 type_ = language_v1.Document.Type.PLAIN_TEXT
                 analysis = list()
                 for content in translations:
-                    document = {"type_": type_, "content": content["content"]}
-                    response = client.analyze_sentiment(request={"document": document})
-                    sentiment = response.document_sentiment
-                    analysis.append(
-                        {
-                            "content": content["content"],
-                            "score": sentiment.score,
-                            "magnitude": sentiment.magnitude,
-                            "votes": content["votes"],
-                        }
-                    )
+                    try:
+                        document = {"type_": type_, "content": content["content"]}
+                        response = client.analyze_sentiment(request={"document": document})
+                        sentiment = response.document_sentiment
+                        analysis.append(
+                            {
+                                "content": content["content"],
+                                "score": sentiment.score,
+                                "magnitude": sentiment.magnitude,
+                                "votes": content["votes"],
+                            }
+                        )
+                    except:
+                        analysis.append(
+                            {
+                                "content": "nil",
+                                "score": 0,
+                                "magnitude": 0,
+                                "votes": 0,
+                            }
+                        )
                 try:
                     normal_weighted_average = sum(
                         (
