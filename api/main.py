@@ -278,7 +278,11 @@ def update_sentiment_data():
         target_key = datastore_client.key(kind, tag_info["entry_id"])
         curr_tag_info = datastore_client.get(target_key)
         curr_tag_info["current_time"] = tag_info["current_time"] + datetime.timedelta(1)
-        curr_tag_info["processed_posts"] += len(filtered)
+        try:
+            curr_tag_info["processed_posts"] += len(filtered)
+        except:
+            # we just don't add nothin', it occurs when skipping the block above
+            pass
         # return query results to the db
         datastore_client.put(curr_tag_info)
 
