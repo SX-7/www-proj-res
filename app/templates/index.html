@@ -202,18 +202,44 @@
       ];
 
       var layout = {
-        title: 'Wykres dla danego tagu: ' + tag,
+        title: {
+          text: 'Wykres dla danego tagu: ' + tag,
+          font: {
+            size: 24,
+            weight: 'bold'
+          }
+        },
         xaxis: {
-          title: 'Data',
+          title: {
+            text: 'Data',
+            font: {
+              size: 18,
+              weight: 'bold'
+            }
+          },
           type: 'date',
-          tickformat: '%Y-%m-%d'
+          tickformat: '%Y-%m-%d',
+          titlefont: {
+            size: 16,
+            weight: 'bold'
+          }
         },
         yaxis: {
-          title: 'Wartość',
+          title: {
+            text: 'Wartość sentymentu',
+            font: {
+              size: 18,
+              weight: 'bold'
+            }
+          },
           range: [min_y - step, max_y + step],
           tickmode: 'linear',
           dtick: step,
-          hoverformat: '.3f'
+          hoverformat: '.3f',
+          titlefont: {
+            size: 16,
+            weight: 'bold'
+          }
         },
         legend: {
           orientation: 'h',
@@ -221,7 +247,7 @@
           xanchor: 'center',
           y: 1.1,
           font: {
-            size: 16
+            size: 20
           }
         }
       };
