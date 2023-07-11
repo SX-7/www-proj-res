@@ -10,75 +10,83 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
-    body {
-      font-family: 'Inter', sans-serif;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+}
 
-    h1,
-    h3 {
-      font-weight: bold;
-    }
+h1,
+h3 {
+  font-weight: bold;
+}
 
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-    }
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
 
-    .navbar-brand span {
-      font-weight: bold;
-      font-size: 30;
-    }
+.navbar-brand span {
+  font-weight: bold;
+  font-size: 30;
+}
 
-    .navbar-brand img {
-      height: 60px;
-      width: 60px;
-    }
+.navbar-brand img {
+  height: 60px;
+  width: 60px;
+}
 
-    #chartContainer {
-      margin-top: 10px;
-      margin-bottom: 10px;
-      height: 500px;
-    }
+#chartContainer {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  height: 500px;
+}
 
-    .info-container {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+.info-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-    .info-item {
-      flex-basis: 30%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      text-align: center;
-    }
+.info-item {
+  flex-basis: 30%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
 
-    th,
-    td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
+th,
+td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
 
-    th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
 
-    .toggle-button {
-      margin-bottom: 10px;
-      width: 100%;
-      background-color: #444;
-      color: #444;
-    }
+.toggle-button {
+  margin-bottom: 10px;
+  width: 100%;
+  background-color: #555;
+  color: #fff;
+}
 
+.toggle-button:hover,
+.toggle-button.expanded:hover {
+  background-color: #444;
+}
+
+.toggle-button.expanded {
+  background-color: #555;
+}
   </style>
 </head>
 
@@ -318,9 +326,9 @@
           <td>${data[date].filtered_post_total}</td>
           <td>${data[date].post_total}</td>
           <td>${data[date].upvote_total}</td>
-          <td>${data[date].weighted_average}</td>
-          <td>${data[date].upvoted_weighted_average}</td>
-          <td>${controversy}</td>
+          <td>${data[date].weighted_average.toFixed(3)}</td>
+          <td>${data[date].upvoted_weighted_average.toFixed(3)}</td>
+          <td>${controversy.toFixed(3)}</td>
         `;
         dataTable.appendChild(row);
       }
