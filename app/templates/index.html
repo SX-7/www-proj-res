@@ -72,6 +72,10 @@
       font-weight: bold;
     }
 
+    .toggle-button {
+      margin-bottom: 10px;
+    }
+
   </style>
 </head>
 
@@ -100,7 +104,8 @@
 
   <div class="container">
     <div id="chartContainer"></div>
-    <table>
+    <button class="toggle-button btn btn-primary" onclick="toggleTable()">Pokaż tabelę</button>
+    <table id="dataTable" style="display: none;">
       <thead>
         <tr>
           <th>Data</th>
@@ -109,14 +114,32 @@
           <th>Suma upvote'ów</th>
           <th>Średnia ważona na podstawie komentarzy</th>
           <th>Średnia ważona na podstawie komentarzy oraz ilości upvote'ów</th>
+          <th>Kontrowersyjność</th>
         </tr>
       </thead>
-      <tbody id="dataTable"></tbody>
+      <tbody></tbody>
     </table>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script>
+    var tableVisible = false;
+
+    function toggleTable() {
+      var dataTable = document.getElementById("dataTable");
+      var toggleButton = document.querySelector(".toggle-button");
+
+      if (tableVisible) {
+        dataTable.style.display = "none";
+        toggleButton.textContent = "Pokaż tabelę";
+        tableVisible = false;
+      } else {
+        dataTable.style.display = "table";
+        toggleButton.textContent = "Schowaj tabelę";
+        tableVisible = true;
+      }
+    }
+
     function fetchTags() {
       fetch("/api/tracked_tags")
         .then(response => response.json())
@@ -196,21 +219,21 @@
           x: dates,
           y: weightedAverage,
           type: 'line',
-          name: 'Weighted Average',
+          name: 'Średnia ważona na podstawie komentarzy',
           hovertemplate: '%{y:.3f}',
         },
         {
           x: dates,
           y: upvotedWeightedAverage,
           type: 'line',
-          name: 'Upvoted Weighted Average',
+          name: 'Średnia ważona na podstawie komentarzy oraz ilości upvote\'ów',
           hovertemplate: '%{y:.3f}',
         },
         {
           x: dates,
           y: controversy,
           type: 'line',
-          name: 'Controversy',
+          name: 'Kontrowersyjność',
           hovertemplate: '%{y:.3f}',
         }
       ];
@@ -279,7 +302,7 @@
     }
 
     function renderTable(data) {
-      var dataTable = document.getElementById("dataTable");
+      var dataTable = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
       dataTable.innerHTML = "";
 
       for (var date in data) {
