@@ -26,6 +26,7 @@
 
     .navbar-brand span {
       font-weight: bold;
+      font-size: 30;
     }
 
     .navbar-brand img {
@@ -102,10 +103,10 @@
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Filtered Post Total</th>
-          <th>Post Total</th>
-          <th>Upvote Total</th>
+          <th>Data</th>
+          <th>Przefiltrowane posty</th>
+          <th>Wszystkie posty</th>
+          <th>Suma upvote'ów</th>
         </tr>
       </thead>
       <tbody id="dataTable"></tbody>
@@ -187,7 +188,7 @@
           x: dates,
           y: weightedAverage,
           type: 'line',
-          name: 'Weighted Average',
+          name: 'Średnia',
           hovertemplate: '%{y:.3f}',
         },
         {
