@@ -77,7 +77,6 @@ th {
   width: 100%;
   background-color: #555;
   color: #fff;
-  border: 1px solid #444;
 }
 
 .toggle-button:hover,
@@ -85,8 +84,14 @@ th {
   background-color: #444;
 }
 
-.toggle-button.expanded {
+.toggle-button.expanded,
+.toggle-button:not(:focus) {
   background-color: #555;
+}
+
+.toggle-button:focus,
+.toggle-button:not(:focus) {
+      outline: none !important;
 }
   </style>
 </head>
