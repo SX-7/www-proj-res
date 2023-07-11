@@ -35,8 +35,8 @@
     }
 
     #chartContainer {
-      margin-top: 20px;
-      margin-bottom: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
       height: 500px;
     }
 
@@ -99,7 +99,7 @@
   </div>
 
   <div class="container">
-    <div id="chartContainer" style="height: 600px;"></div>
+    <div id="chartContainer"></div>
     <table>
       <thead>
         <tr>
@@ -188,21 +188,21 @@
           x: dates,
           y: weightedAverage,
           type: 'line',
-          name: 'Średnia',
+          name: 'Średnia ważona na podstawie komentarzy',
           hovertemplate: '%{y:.3f}',
         },
         {
           x: dates,
           y: upvotedWeightedAverage,
           type: 'line',
-          name: 'Upvoted Weighted Average',
+          name: 'Średnia ważona na podstawie komentarzy oraz ilości upvote\'ów',
           hovertemplate: '%{y:.3f}',
         }
       ];
 
       var layout = {
         title: {
-          text: 'Wykres dla danego tagu: ' + tag,
+          text: 'Wykres dla tagu: ' + tag,
           font: {
             size: 24,
             weight: 'bold'
