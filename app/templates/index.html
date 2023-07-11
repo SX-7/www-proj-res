@@ -36,6 +36,7 @@
     #chartContainer {
       margin-top: 20px;
       margin-bottom: 20px;
+      height: 600px; /* Dostosuj wysokość według potrzeb */
     }
 
     .info-container {
@@ -100,7 +101,7 @@
   </div>
 
   <div class="container">
-    <div id="chartContainer" style="height: 400px;"></div>
+    <div id="chartContainer" style="height: 600px;"></div>
     <table>
       <thead>
         <tr>
@@ -217,6 +218,10 @@
               weight: 'bold'
             }
           },
+          tickfont: {
+            size: 14,
+            weight: 'bold'
+          },
           type: 'date',
           tickformat: '%Y-%m-%d',
           titlefont: {
@@ -231,6 +236,10 @@
               size: 18,
               weight: 'bold'
             }
+          },
+          tickfont: {
+            size: 14,
+            weight: 'bold'
           },
           range: [min_y - step, max_y + step],
           tickmode: 'linear',
@@ -247,7 +256,8 @@
           xanchor: 'center',
           y: 1.1,
           font: {
-            size: 16
+            size: 16,
+            weight: 'bold'
           }
         }
       };
