@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WykOpinion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
@@ -25,16 +26,18 @@
 
     .navbar-brand span {
       font-weight: bold;
+      font-size: 30;
     }
 
     .navbar-brand img {
-      height: 50px;
-      width: 50px;
+      height: 60px;
+      width: 60px;
     }
 
     #chartContainer {
-      margin-top: 20px;
-      margin-bottom: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      height: 500px;
     }
 
     .info-container {
@@ -61,34 +64,14 @@
     td {
       padding: 10px;
       border: 1px solid #ccc;
+      text-align: center;
     }
 
     th {
       background-color: #f2f2f2;
       font-weight: bold;
-      text-align: center;
     }
 
-    td {
-      text-align: center;
-    }
-
-    /* Grupowanie stylów dla wykresu */
-    .chart-title {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: center;
-    }
-
-    .legend-item {
-      margin-right: 10px;
-    }
   </style>
 </head>
 
@@ -116,14 +99,16 @@
   </div>
 
   <div class="container">
-    <div id="chartContainer" style="height: 400px;"></div>
+    <div id="chartContainer"></div>
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Filtered Post Total</th>
-          <th>Post Total</th>
-          <th>Upvote Total</th>
+          <th>Data</th>
+          <th>Przefiltrowane posty</th>
+          <th>Wszystkie posty</th>
+          <th>Suma upvote'ów</th>
+          <th>Średnia ważona na podstawie komentarzy</th>
+          <th>Średnia ważona na podstawie komentarzy oraz ilości upvote'ów</th>
         </tr>
       </thead>
       <tbody id="dataTable"></tbody>
@@ -131,7 +116,6 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
     function fetchTags() {
       fetch("/api/tracked_tags")
@@ -156,64 +140,142 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          var chartData = transformData(data[tag]);
+          var filteredData = filterData(data[tag]);
+          var chartData = transformData(filteredData);
           renderChart(chartData, tag);
-          renderTable(data[tag]);
+          renderTable(filteredData);
         })
         .catch(error => {
           console.error("Wystąpił błąd podczas pobierania danych z API:", error);
         });
     }
 
-    function transformData(data) {
-      var chartData = [];
-      var plotlyData = {
-        x: [],
-        y: [],
-        mode: 'lines+markers',
-        connectgaps: true
-      };
+    function filterData(data) {
+      var filteredData = {};
 
       for (var date in data) {
-        var filteredPostTotal = data[date].filtered_post_total;
-        if (filteredPostTotal !== 0) {
-          var weightedAverage = data[date].weighted_average;
-          var upvotedWeightedAverage = data[date].upvoted_weighted_average;
-          chartData.push({
-            date: new Date(date),
-            weighted_average: weightedAverage,
-            upvoted_weighted_average: upvotedWeightedAverage
-          });
-          plotlyData.x.push(date);
-          plotlyData.y.push(weightedAverage);
-        } else {
-          plotlyData.x.push(date);
-          plotlyData.y.push(null);
+        if (data[date].filtered_post_total !== 0) {
+          filteredData[date] = data[date];
         }
       }
 
-      var trace = {
-        x: plotlyData.x,
-        y: plotlyData.y,
-        mode: 'lines+markers',
-        connectgaps: true
-      };
+      return filteredData;
+    }
+
+    function transformData(data) {
+      var chartData = [];
+
+      for (var date in data) {
+        var weightedAverage = data[date].weighted_average;
+        var upvotedWeightedAverage = data[date].upvoted_weighted_average;
+        var controversy = Math.abs(weightedAverage - upvotedWeightedAverage);
+
+        chartData.push({
+          date: date,
+          weighted_average: weightedAverage,
+          upvoted_weighted_average: upvotedWeightedAverage,
+          controversy: controversy
+        });
+      }
+
+      return chartData;
+    }
+
+    function renderChart(data, tag) {
+      var dates = data.map(item => item.date);
+      var weightedAverage = data.map(item => item.weighted_average);
+      var upvotedWeightedAverage = data.map(item => item.upvoted_weighted_average);
+      var controversy = data.map(item => item.controversy);
+
+      var max_y = Math.max(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
+      var min_y = Math.min(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
+      var step = (max_y - min_y) / 20;
+
+      var chartData = [
+        {
+          x: dates,
+          y: weightedAverage,
+          type: 'line',
+          name: 'Weighted Average',
+          hovertemplate: '%{y:.3f}',
+        },
+        {
+          x: dates,
+          y: upvotedWeightedAverage,
+          type: 'line',
+          name: 'Upvoted Weighted Average',
+          hovertemplate: '%{y:.3f}',
+        },
+        {
+          x: dates,
+          y: controversy,
+          type: 'line',
+          name: 'Controversy',
+          hovertemplate: '%{y:.3f}',
+        }
+      ];
 
       var layout = {
-        title: "Wykres dla tagu: " + tag,
-        showlegend: true,
+        title: {
+          text: 'Wykres dla tagu: ' + tag,
+          font: {
+            size: 24,
+            weight: 'bold'
+          }
+        },
         xaxis: {
-          title: "Data"
+          title: {
+            text: 'Data',
+            font: {
+              size: 18,
+              weight: 'bold'
+            }
+          },
+          tickfont: {
+            size: 14,
+            weight: 'bold'
+          },
+          type: 'date',
+          tickformat: '%Y-%m-%d',
+          titlefont: {
+            size: 18,
+            weight: 'bold'
+          }
         },
         yaxis: {
-          title: "Wartość sentymentu"
+          title: {
+            text: 'Wartość sentymentu',
+            font: {
+              size: 18,
+              weight: 'bold'
+            }
+          },
+          tickfont: {
+            size: 14,
+            weight: 'bold'
+          },
+          range: [min_y - step, max_y + step],
+          tickmode: 'linear',
+          dtick: step,
+          hoverformat: '.3f',
+          titlefont: {
+            size: 18,
+            weight: 'bold'
+          }
+        },
+        legend: {
+          orientation: 'h',
+          x: 0.5,
+          xanchor: 'center',
+          y: 1.1,
+          font: {
+            size: 16,
+            weight: 'bold'
+          }
         }
       };
 
-      var data = [trace];
-
-      Plotly.newPlot('chartContainer', data, layout);
-      return chartData;
+      Plotly.newPlot('chartContainer', chartData, layout);
     }
 
     function renderTable(data) {
@@ -227,6 +289,9 @@
           <td>${data[date].filtered_post_total}</td>
           <td>${data[date].post_total}</td>
           <td>${data[date].upvote_total}</td>
+          <td>${data[date].weighted_average}</td>
+          <td>${data[date].upvoted_weighted_average}</td>
+          <td>${data[date].controversy}</td>
         `;
         dataTable.appendChild(row);
       }
