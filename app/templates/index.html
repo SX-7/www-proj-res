@@ -107,6 +107,8 @@
           <th>Przefiltrowane posty</th>
           <th>Wszystkie posty</th>
           <th>Suma upvote'ów</th>
+          <th>Średnia ważona na podstawie komentarzy</th>
+          <th>Średnia ważona na podstawie komentarzy oraz ilości upvote'ów</th>
         </tr>
       </thead>
       <tbody id="dataTable"></tbody>
@@ -164,10 +166,15 @@
       var chartData = [];
 
       for (var date in data) {
+        var weightedAverage = data[date].weighted_average;
+        var upvotedWeightedAverage = data[date].upvoted_weighted_average;
+        var controversy = Math.abs(weightedAverage - upvotedWeightedAverage);
+
         chartData.push({
           date: date,
-          weighted_average: data[date].weighted_average,
-          upvoted_weighted_average: data[date].upvoted_weighted_average
+          weighted_average: weightedAverage,
+          upvoted_weighted_average: upvotedWeightedAverage,
+          controversy: controversy
         });
       }
 
@@ -178,9 +185,10 @@
       var dates = data.map(item => item.date);
       var weightedAverage = data.map(item => item.weighted_average);
       var upvotedWeightedAverage = data.map(item => item.upvoted_weighted_average);
+      var controversy = data.map(item => item.controversy);
 
-      var max_y = Math.max(...upvotedWeightedAverage);
-      var min_y = Math.min(...upvotedWeightedAverage);
+      var max_y = Math.max(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
+      var min_y = Math.min(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
       var step = (max_y - min_y) / 20;
 
       var chartData = [
@@ -188,14 +196,21 @@
           x: dates,
           y: weightedAverage,
           type: 'line',
-          name: 'Średnia ważona na podstawie komentarzy',
+          name: 'Weighted Average',
           hovertemplate: '%{y:.3f}',
         },
         {
           x: dates,
           y: upvotedWeightedAverage,
           type: 'line',
-          name: 'Średnia ważona na podstawie komentarzy oraz ilości upvote\'ów',
+          name: 'Upvoted Weighted Average',
+          hovertemplate: '%{y:.3f}',
+        },
+        {
+          x: dates,
+          y: controversy,
+          type: 'line',
+          name: 'Controversy',
           hovertemplate: '%{y:.3f}',
         }
       ];
@@ -274,6 +289,9 @@
           <td>${data[date].filtered_post_total}</td>
           <td>${data[date].post_total}</td>
           <td>${data[date].upvote_total}</td>
+          <td>${data[date].weighted_average}</td>
+          <td>${data[date].upvoted_weighted_average}</td>
+          <td>${data[date].controversy}</td>
         `;
         dataTable.appendChild(row);
       }
