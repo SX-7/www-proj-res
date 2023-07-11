@@ -314,7 +314,7 @@
           <td>${data[date].upvote_total}</td>
           <td>${data[date].weighted_average}</td>
           <td>${data[date].upvoted_weighted_average}</td>
-          <td>${data[date].controversy}</td>
+          <td>${data[date].weighted_average - data[date].upvoted_weighted_average}</td>
         `;
         dataTable.appendChild(row);
       }
