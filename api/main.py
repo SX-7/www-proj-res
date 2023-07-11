@@ -127,7 +127,6 @@ def update_sentiment_data_manager():
 
 def update_sentiment_data():
     # step 1. get basic data
-    api_token = get_token()[0]["api_token"]
     taglist = get_taglist()
     # step 2. check every tag, we want the one which hasn't been updated yet
     chosen_tag = {"current_time":datetime.datetime.now(tz=datetime.timezone.utc)}
@@ -149,6 +148,7 @@ def update_sentiment_data():
         query.add_filter("day","=",tag_info["current_time"].day)
         fits = list(query.fetch())
         if len(fits) == 0:
+            api_token = get_token()[0]["api_token"]
             # that means there's no entries for this day
             # get posts for that day
             (
