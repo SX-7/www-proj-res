@@ -74,6 +74,17 @@
 
     .toggle-button {
       margin-bottom: 10px;
+      width: 100%;
+      background-color: #555;
+      color: #fff;
+    }
+
+    .toggle-button:hover {
+      background-color: #444;
+    }
+
+    .toggle-button.expanded {
+      background-color: #999;
     }
 
   </style>
@@ -104,7 +115,7 @@
 
   <div class="container">
     <div id="chartContainer"></div>
-    <button class="toggle-button btn btn-primary" onclick="toggleTable()">Pokaż tabelę</button>
+    <button class="toggle-button btn btn-primary" onclick="toggleTable()">Pokaż tabelę z większą ilością informacji</button>
     <table id="dataTable" style="display: none;">
       <thead>
         <tr>
@@ -124,18 +135,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script>
     var tableVisible = false;
+    var toggleButton = document.querySelector(".toggle-button");
 
     function toggleTable() {
       var dataTable = document.getElementById("dataTable");
-      var toggleButton = document.querySelector(".toggle-button");
 
       if (tableVisible) {
         dataTable.style.display = "none";
-        toggleButton.textContent = "Pokaż tabelę";
+        toggleButton.textContent = "Pokaż tabelę z większą ilością informacji";
+        toggleButton.classList.remove("expanded");
         tableVisible = false;
       } else {
         dataTable.style.display = "table";
-        toggleButton.textContent = "Schowaj tabelę";
+        toggleButton.textContent = "Schowaj tabelę z większą ilością informacji";
+        toggleButton.classList.add("expanded");
         tableVisible = true;
       }
     }
@@ -307,6 +320,7 @@
 
       for (var date in data) {
         var row = document.createElement("tr");
+        var controversy = Math.abs(data[date].weighted_average - data[date].upvoted_weighted_average);
         row.innerHTML = `
           <td>${date}</td>
           <td>${data[date].filtered_post_total}</td>
@@ -314,7 +328,7 @@
           <td>${data[date].upvote_total}</td>
           <td>${data[date].weighted_average}</td>
           <td>${data[date].upvoted_weighted_average}</td>
-          <td>${data[date].weighted_average - data[date].upvoted_weighted_average}</td>
+          <td>${controversy}</td>
         `;
         dataTable.appendChild(row);
       }
