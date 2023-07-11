@@ -10,91 +10,95 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
-body {
-  font-family: 'Inter', sans-serif;
-}
+    body {
+        font-family: 'Inter', sans-serif;
+    }
 
-h1,
-h3 {
-  font-weight: bold;
-}
+    h1,
+    h3 {
+        font-weight: bold;
+    }
 
-.navbar-brand {
-  display: flex;
-  align-items: center;
-}
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+    }
 
-.navbar-brand span {
-  font-weight: bold;
-  font-size: 30;
-}
+    .navbar-brand span {
+        font-weight: bold;
+        font-size: 30;
+    }
 
-.navbar-brand img {
-  height: 60px;
-  width: 60px;
-}
+    .navbar-brand img {
+        height: 60px;
+        width: 60px;
+    }
 
-#chartContainer {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  height: 500px;
-}
+    #chartContainer {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        height: 500px;
+    }
 
-.info-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
+    .info-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
-.info-item {
-  flex-basis: 30%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  text-align: center;
-}
+    .info-item {
+        flex-basis: 30%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
 
-th,
-td {
-  padding: 10px;
-  border: 1px solid #ccc;
-  text-align: center;
-}
+    th,
+    td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
 
-th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
 
-.toggle-button,
-.toggle-button:focus:not(.expanded) {
-  margin-bottom: 10px;
-  width: 100%;
-  background-color: #555;
-  color: #fff;
-  border: 1px solid #444 !important;
-  outline: none !important;
-}
+    .toggle-button,
+    .toggle-button:focus:not(.expanded),
+    .toggle-button.expanded,
+    .toggle-button.focus,
+    .toggle-button.active {
+        margin-bottom: 10px;
+        width: 100%;
+        background-color: #555;
+        color: #fff;
+        border: 1px solid #444 !important;
+    }
 
-.toggle-button:hover,
-.toggle-button.expanded:hover {
-  background-color: #444 !important;
-  outline: none !important;
-}
+    .toggle-button:hover,
+    .toggle-button.expanded:hover {
+        background-color: #444 !important;
+    }
 
-.toggle-button.expanded,
-.toggle-button.focus {
-  background-color: #555 !important;
-  border: 1px solid #444 !important;
-  outline: none !important;
-}
-  </style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .container > * {
+        margin-bottom: 10px;
+    }
+</style>
 </head>
 
 <body>
@@ -113,15 +117,12 @@ th {
   </nav>
 
   <div class="container mt-5">
+    <div id="chartContainer"></div>
     <div class="text-center mt-3">
       <select class="form-select" aria-label="Wybierz tag" onchange="generateChart(this.value)">
         <option selected disabled>Wybierz tag</option>
       </select>
     </div>
-  </div>
-
-  <div class="container">
-    <div id="chartContainer"></div>
     <button class="toggle-button btn btn-primary" onclick="toggleTable()">Pokaż tabelę z większą ilością informacji</button>
     <table id="dataTable" style="display: none;">
       <thead>
