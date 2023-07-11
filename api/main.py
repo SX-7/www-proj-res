@@ -16,8 +16,6 @@ app = Flask(__name__)
 
 # question with a $0 prize: why aren't we using PUT?
 # answer: cron.yaml functions by sending GET requests, *only*
-# addendum: modify to disallow external connections after testing is done
-# https://cloud.google.com/appengine/docs/flexible/scheduling-jobs-with-cron-yaml#securing_urls_for_cron
 @app.route("/api/token/refresh")
 def refresh_token():
     # Check if it's a crontab job
@@ -121,6 +119,7 @@ def update_sentiment_data_manager():
         return "Unauthorized request", 401
     # get the time 
     start_time = time.time()
+    # generally ensures we won't go into overtime
     while time.time() - start_time < 20:
         update_sentiment_data()
     return "",204
@@ -139,129 +138,140 @@ def update_sentiment_data():
     # if there's over 24 hours since a last update
     diff = datetime.datetime.now(tz=datetime.timezone.utc) - tag_info["current_time"]
     if diff.days >= 1:
-        # get posts for that day
-        (
-            post_list,
-            filtered_upvote_total,
-            post_total,
-        ) = get_wykop_posts(
-            api_token,
-            tag_info["tag_name"],
-            tag_info["current_time"],
-            tag_info["current_time"]+datetime.timedelta(1),
-        )
-        normal_weighted_average = 0
-        upvoted_weighted_average = 0
-        # filter out short posts
-        filtered = [post for post in post_list if len(post["content"]) > 200]
-        filtered_post_total = len(filtered)
+        # to allow re-doing data, or going even further back, 
+        # without incurring charges for unnecesary API usage, we're gonna first check if there's already a db entry
         datastore_client = datastore.Client()
-        if len(filtered) != 0:
-            # put them into google translate
-            client = translate.TranslationServiceClient()
-            kind = "ProjectId"
-            query = datastore_client.query(kind=kind)
-            data = list(query.fetch())
-            parent = data[0]["project_id"]
-            translations = list()
-            for post in filtered:
-                response = client.translate_text(
-                    request={
-                        "parent": parent,
-                        "contents": [post["content"]],
-                        "mime_type": "text/plain",  # mime types: text/plain, text/html
-                        "source_language_code": "pl",
-                        "target_language_code": "en",
-                    }
-                )
-                translations.append(
-                    {
-                        "content": response.translations[0].translated_text,
-                        "votes": post["votes"],
-                    }
-                )
-            # put the translated text into AI
-            client = language_v1.LanguageServiceClient()
-            type_ = language_v1.Document.Type.PLAIN_TEXT
-            analysis = list()
-            for content in translations:
-                try:
-                    document = {"type_": type_, "content": content["content"]}
-                    response = client.analyze_sentiment(request={"document": document})
-                    sentiment = response.document_sentiment
-                    analysis.append(
-                        {
-                            "content": content["content"],
-                            "score": sentiment.score,
-                            "magnitude": sentiment.magnitude,
-                            "votes": content["votes"],
+        kind = f"Sentiment_{tag_info['tag_name']}"
+        query = datastore_client.query(kind=kind)
+        query.add_filter("year","=",tag_info["current_time"].year)
+        query.add_filter("month","=",tag_info["current_time"].month)
+        query.add_filter("day","=",tag_info["current_time"].day)
+        fits = list(query.fetch())
+        if len(fits) == 0:
+            # that means there's no entries for this day
+            # get posts for that day
+            (
+                post_list,
+                filtered_upvote_total,
+                post_total,
+            ) = get_wykop_posts(
+                api_token,
+                tag_info["tag_name"],
+                tag_info["current_time"],
+                tag_info["current_time"]+datetime.timedelta(1),
+            )
+            normal_weighted_average = 0
+            upvoted_weighted_average = 0
+            # filter out short posts
+            filtered = [post for post in post_list if len(post["content"]) > 200]
+            filtered_post_total = len(filtered)
+            
+            if len(filtered) != 0:
+                # put them into google translate
+                client = translate.TranslationServiceClient()
+                kind = "ProjectId"
+                query = datastore_client.query(kind=kind)
+                data = list(query.fetch())
+                parent = data[0]["project_id"]
+                translations = list()
+                for post in filtered:
+                    response = client.translate_text(
+                        request={
+                            "parent": parent,
+                            "contents": [post["content"]],
+                            "mime_type": "text/plain",  # mime types: text/plain, text/html
+                            "source_language_code": "pl",
+                            "target_language_code": "en",
                         }
+                    )
+                    translations.append(
+                        {
+                            "content": response.translations[0].translated_text,
+                            "votes": post["votes"],
+                        }
+                    )
+                # put the translated text into AI
+                client = language_v1.LanguageServiceClient()
+                type_ = language_v1.Document.Type.PLAIN_TEXT
+                analysis = list()
+                for content in translations:
+                    try:
+                        document = {"type_": type_, "content": content["content"]}
+                        response = client.analyze_sentiment(request={"document": document})
+                        sentiment = response.document_sentiment
+                        analysis.append(
+                            {
+                                "content": content["content"],
+                                "score": sentiment.score,
+                                "magnitude": sentiment.magnitude,
+                                "votes": content["votes"],
+                            }
+                        )
+                    except:
+                        analysis.append(
+                            {
+                                "content": "nil",
+                                "score": 0,
+                                "magnitude": 0,
+                                "votes": 0,
+                            }
+                        )
+                try:
+                    normal_weighted_average = sum(
+                        (
+                            x * y
+                            for x, y in zip(
+                                (postx["score"] for postx in analysis),
+                                (posty["magnitude"] for posty in analysis),
+                            )
+                        )
+                    ) / sum((postz["magnitude"] for postz in analysis))
+                except:
+                    normal_weighted_average = 0
+                try:
+                    upvoted_weighted_average = sum(
+                        (
+                            x * y * z
+                            for x, y, z in zip(
+                                (postx["score"] for postx in analysis),
+                                (posty["magnitude"] for posty in analysis),
+                                (postz["votes"] for postz in analysis),
+                            )
+                        )
+                    ) / sum(
+                        (
+                            a * b
+                            for a, b in zip(
+                                (posta["magnitude"] for posta in analysis),
+                                (postb["votes"] for postb in analysis),
+                            )
+                        )
                     )
                 except:
-                    analysis.append(
-                        {
-                            "content": "nil",
-                            "score": 0,
-                            "magnitude": 0,
-                            "votes": 0,
-                        }
-                    )
-            try:
-                normal_weighted_average = sum(
-                    (
-                        x * y
-                        for x, y in zip(
-                            (postx["score"] for postx in analysis),
-                            (posty["magnitude"] for posty in analysis),
-                        )
-                    )
-                ) / sum((postz["magnitude"] for postz in analysis))
-            except:
-                normal_weighted_average = 0
-            try:
-                upvoted_weighted_average = sum(
-                    (
-                        x * y * z
-                        for x, y, z in zip(
-                            (postx["score"] for postx in analysis),
-                            (posty["magnitude"] for posty in analysis),
-                            (postz["votes"] for postz in analysis),
-                        )
-                    )
-                ) / sum(
-                    (
-                        a * b
-                        for a, b in zip(
-                            (posta["magnitude"] for posta in analysis),
-                            (postb["votes"] for postb in analysis),
-                        )
-                    )
-                )
-            except:
-                upvoted_weighted_average=0
+                    upvoted_weighted_average=0
 
-        # put the sentiment data back into db
-        # general idea is to use seperate kind (TagInfo) to store well, tag info
-        # and to use it to be able to put only data related to a tag into the DB
-        # this is mostly to organize data, instead of putting everything in one table
-        # The kind for the new entity
-        kind = "Sentiment_" + str(tag_info["tag_name"])
-        # The Cloud Datastore key for the new entity
-        entity_key = datastore_client.key(kind)
+            # put the sentiment data back into db
+            # general idea is to use seperate kind (TagInfo) to store well, tag info
+            # and to use it to be able to put only data related to a tag into the DB
+            # this is mostly to organize data, instead of putting everything in one table
+            # The kind for the new entity
+            kind = "Sentiment_" + str(tag_info["tag_name"])
+            # The Cloud Datastore key for the new entity
+            entity_key = datastore_client.key(kind)
 
-        # Prepares the new entity
-        entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","upvoted_weighted_average"))
-        entity["upvote_total"] = filtered_upvote_total
-        entity["post_total"] = post_total
-        entity["filtered_post_total"] = filtered_post_total
-        entity["weighted_average"] = normal_weighted_average
-        entity["upvoted_weighted_average"] = upvoted_weighted_average
-        entity["year"] = tag_info["current_time"].year
-        entity["month"] = tag_info["current_time"].month
-        entity["day"] = tag_info["current_time"].day
-        # Saves the entity
-        datastore_client.put(entity)
-
+            # Prepares the new entity
+            entity = datastore.Entity(key=entity_key,exclude_from_indexes=("upvote_total","post_total","filtered_post_total","weighted_average","upvoted_weighted_average"))
+            entity["upvote_total"] = filtered_upvote_total
+            entity["post_total"] = post_total
+            entity["filtered_post_total"] = filtered_post_total
+            entity["weighted_average"] = normal_weighted_average
+            entity["upvoted_weighted_average"] = upvoted_weighted_average
+            entity["year"] = tag_info["current_time"].year
+            entity["month"] = tag_info["current_time"].month
+            entity["day"] = tag_info["current_time"].day
+            # Saves the entity
+            datastore_client.put(entity)
+        # regardless of an entry existing, we still need to update the timer
         # update the time period
         # setup and execute get
         kind = "Tags"
@@ -269,7 +279,7 @@ def update_sentiment_data():
         curr_tag_info = datastore_client.get(target_key)
         curr_tag_info["current_time"] = tag_info["current_time"] + datetime.timedelta(1)
         curr_tag_info["processed_posts"] += len(filtered)
-        # return query results to the user
+        # return query results to the db
         datastore_client.put(curr_tag_info)
 
 
