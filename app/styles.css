@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1,
+    h3 {
+        font-weight: bold;
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .navbar-brand span {
+        font-weight: bold;
+        font-size: 20;
+    }
+
+    .navbar-brand img {
+        height: 40px;
+        width: 40px;
+    }
+
+    #chartContainer {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        height: 500px;
+    }
+
+    .info-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        flex-basis: 30%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    .toggle-button,
+    .toggle-button:focus:not(.expanded),
+    .toggle-button.expanded,
+    .toggle-button.focus,
+    .toggle-button.active {
+        margin-bottom: 10px;
+        width: 100%;
+        background-color: #555;
+        color: #fff;
+        border: 1px solid #444 !important;
+    }
+
+    .toggle-button:hover,
+    .toggle-button.expanded:hover {
+        background-color: #444 !important;
+    }
