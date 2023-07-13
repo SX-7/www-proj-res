@@ -9,7 +9,6 @@ import base64
 import json
 import datetime
 import time
-import random
 
 app = Flask(__name__)
 
@@ -117,12 +116,11 @@ def update_sentiment_data_manager():
     # Check if it's a crontab job
     if "X-Appengine-Cron" not in request.headers:
         return "Unauthorized request", 401
-    # these lines are mostly unnecesary now, as we are already caught up
     # get the time 
-    # start_time = time.time()
-    # generally ensures we won't go into overtime
-    # while time.time() - start_time < 20:
-    update_sentiment_data()
+    start_time = time.time()
+    # batches jobs, generally ensures we won't go into overtime
+    while time.time() - start_time < 15:
+        update_sentiment_data()
     return "",204
 
 def update_sentiment_data():
