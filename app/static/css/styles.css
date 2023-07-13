@@ -29,7 +29,8 @@
         margin-top: 10px; 
         margin-bottom: 10px; 
         height: 500px; 
-    } 
+    }
+    
  
     .info-container { 
         display: flex; 
@@ -45,10 +46,13 @@
         text-align: center; 
     } 
  
-    table { 
-        width: 100%; 
+    table, #dataTable { 
+        width: 100%;
+        height: 500px;
         border-collapse: collapse; 
         margin-bottom: 20px;
+        overflow: scroll;
+
     }
  
     th, 
