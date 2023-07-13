@@ -1,2 +1,2 @@
 # WykOpinion
-Website, which analize Wykop.pl users opinion about different topics
+Website, which analizes Wykop.pl's userbase opinions about different topics - hashtags
