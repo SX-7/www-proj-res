@@ -5,44 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WykOpinion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+  <link rel="stylesheet" type="text/css" href="../static/css/styles.css" />
 
-    h1, h3 {
-      font-weight: bold;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-    }
-
-    .navbar-brand span {
-      font-weight: bold;
-    }
-
-    .navbar-brand img {
-      height: 50px;
-      width: 50px;
-    }
-
-  </style>
 </head>
 <body>
-  <nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
       <a class="navbar-brand" href="/">
         <img src="../static/logo.png" alt="Logo" class="logo">
         <span>WykOpinion</span>
       </a>
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/">Powrót do strony</a>
-        </li>
-      </ul>
+      <div class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/faq">FAQ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About project</a>
+          </li>
+      </div>
     </div>
   </nav>
+
 
   <div class="container mt-5">
     <div class="text-center mt-3">
@@ -79,5 +62,13 @@
       </div>
     </div>
   </div>
+
+  <footer class="footer mt-auto py-3 bg-dark">
+    <div class="container text-center">
+      <p class="text-white">Autorzy projektu: Gabriel Rosół, Szymon Nowak, Szymon Justkowski.</p>
+      <p class="text-white">Link do <a href="https://github.com/SX-7/www-proj-res">projektu</a> na GitHubie.</p>
+    </div>
+  </footer>
+  
 </body>
 </html>

@@ -26,5 +26,10 @@ def about():
     return render_template('about.html')
 
 
+@app.route("/faq")
+def faq():
+    return render_template('faq.html')
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

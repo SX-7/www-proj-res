@@ -7,102 +7,26 @@
   <title>WykOpinion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-
-    body {
-        font-family: 'Inter', sans-serif;
-    }
-
-    h1,
-    h3 {
-        font-weight: bold;
-    }
-
-    .navbar-brand {
-        display: flex;
-        align-items: center;
-    }
-
-    .navbar-brand span {
-        font-weight: bold;
-        font-size: 20;
-    }
-
-    .navbar-brand img {
-        height: 40px;
-        width: 40px;
-    }
-
-    #chartContainer {
-        margin-top: 10px;
-        margin-bottom: 10px;
-        height: 500px;
-    }
-
-    .info-container {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .info-item {
-        flex-basis: 30%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        text-align: center;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-    }
-
-    th,
-    td {
-        padding: 10px;
-        border: 1px solid #ccc;
-        text-align: center;
-    }
-
-    th {
-        background-color: #f2f2f2;
-        font-weight: bold;
-    }
-
-    .toggle-button,
-    .toggle-button:focus:not(.expanded),
-    .toggle-button.expanded,
-    .toggle-button.focus,
-    .toggle-button.active {
-        margin-bottom: 10px;
-        width: 100%;
-        background-color: #555;
-        color: #fff;
-        border: 1px solid #444 !important;
-    }
-
-    .toggle-button:hover,
-    .toggle-button.expanded:hover {
-        background-color: #444 !important;
-    }
-</style>
+  <link rel="shortcut icon" type="image/x-icon" href="../static/favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="../static/css/styles.css" />
 </head>
 
 <body>
-  <nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
       <a class="navbar-brand" href="/">
         <img src="../static/logo.png" alt="Logo" class="logo">
         <span>WykOpinion</span>
       </a>
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/about">About project</a>
-        </li>
-      </ul>
+      <div class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/faq">FAQ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About project</a>
+          </li>
+        </ul>
+      </div>
     </div>
   </nav>
 
@@ -132,6 +56,13 @@
       <tbody></tbody>
     </table>
   </div>
+
+  <footer class="footer mt-auto py-3 bg-dark">
+    <div class="container text-center">
+      <p class="text-white">Autorzy projektu: Gabriel Rosół, Szymon Nowak, Szymon Justkowski.</p>
+      <p class="text-white">Link do <a href="https://github.com/SX-7/www-proj-res">projektu</a> na GitHubie.</p>
+    </div>
+  </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
   <script>

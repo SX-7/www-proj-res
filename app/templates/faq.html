@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WykOpinion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../static/css/styles.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="../static/logo.png" alt="Logo" class="logo">
+        <span>WykOpinion</span>
+      </a>
+      <div class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/faq">FAQ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About project</a>
+          </li>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <div class="text-center mt-3">
+      <div class="container mb-5">
+        <div class="row">
+          <div class="col-md-2"></div>
+
+          <div class="col-md-8">
+            <h1 class="text-center">Wybierz tag</h1>
+            <div class="container mt-6">
+              <img id="one" src="../static/wybierzTag.png" width="800" height="160">
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Wybierz interesujący Cię tag, aby zobaczyć jak kształtowała się opinia użytkowników wykop.pl na jego temat.</p>
+                </div>
+            </div>
+            <br/>
+
+            <h1 class="text-center">Wykres dla tagu</h1>
+            <div class="container mt-6">
+              <img id="one" src="../static/wykresDlaTagu.png" width="800" height="300">
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Wykres przedstawia uśredniony sentyment względem danego tagu, na przestrzeni czasowej od stycznia 2020, aż do dnia dzisiejszego. Wartość 0 reprezentuję brak danych, bądź niewystarczającą ilość opinii dla wyznaczenia sentymentu w konkretnym dniu. Wartości ujemne reprezentują opinie negatywne, zaś liczby dodatnie odzwierciedlają pozytywne podejście internautów do tematu. Wartości skrajne -1 i 1 to odpowiednio bardzo negatywny i pozytywny odbiór danego tagu.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Średnia ważona na podstawie komentarzy to wykres prezentujący sentyment oszacowany w oparciu o komentarze użytkowników pod przefiltrowanymi postami w zadanym tagu.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Średnia ważona na podstawie komentarzy oraz ilości upvote'ów to wykres, w którym sentyment jest liczony jako wypadkowa opinii z komentarzy i upvote'ów dla przefiltrowanych postów z danego tagu.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Kontrowersyjność to wykres przedstawiający rozbieżność pomiędzy wartością sentymentu oszacowaną na podstawie komentarzy, a komentarzami i ilością upvote'ów pod postami. Posty posiadające dobrą opinię otrzymują dużą ilość upvote'ów, co zwiększa wartość otrzymanego sentymentu, jednak biorąc pod uwagę same komentarze, wartość sentymentu jest mniejsza. Stąd można przyjąć swego rodzaju wskaźnik "rozbieżności" opinii użytkowników.</p>
+                </div>
+            </div>
+            <br/>
+
+            <h1 class="text-center">Pokaż tabelę z większą ilością informacji</h1>
+            <div class="container mt-6">
+              <img id="one" src="../static/tabela.png" width="800" height="30">
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Rozwiń tabelę, w której zestawiono dane z wykresu, jak również dodatkowe informacje, np. ilość postów, sumę upvote'ów z danym tagiem.</p>
+                </div>
+            </div>
+            <br/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-auto py-3 bg-dark">
+    <div class="container text-center">
+      <p class="text-white">Autorzy projektu: Gabriel Rosół, Szymon Nowak, Szymon Justkowski.</p>
+      <p class="text-white">Link do <a href="https://github.com/SX-7/www-proj-res">projektu</a> na GitHubie.</p>
+    </div>
+  </footer>
+  
+</body>
+</html>

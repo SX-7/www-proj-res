@@ -1,1 +1,2 @@
-# www-proj-res
+# WykOpinion
+Website, which analizes Wykop.pl's userbase opinions about different topics - hashtags
