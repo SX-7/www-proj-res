@@ -48,10 +48,10 @@
  
     table, #dataTable { 
         width: 100%;
-        height: 500px;
+        height: 150px !important;
         border-collapse: collapse; 
         margin-bottom: 20px;
-        overflow: scroll;
+        overflow: scroll !important;
 
     }
  
