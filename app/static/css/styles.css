@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap'); 
  
-    body { 
+    body {
         font-family: 'Inter', sans-serif;
         min-height: 100vh;
         display: flex;
@@ -39,7 +39,12 @@
         display: flex; 
         align-items: center; 
         margin-bottom: 20px; 
-    } 
+    }
+    
+    #dataTable {
+        max-height: 300px;
+        overflow-y: auto;
+      }
  
     .info-item { 
         flex-basis: 30%; 
