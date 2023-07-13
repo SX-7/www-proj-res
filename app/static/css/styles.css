@@ -3,8 +3,8 @@
     body, .footer { 
         font-family: 'Inter', sans-serif;
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: 1fr auto;
     } 
  
     h1, 
@@ -82,8 +82,4 @@
     .toggle-button:hover, 
     .toggle-button.expanded:hover { 
         background-color: #444 !important; 
-    }
-
-    .footer {
-        margin-top: auto;
     }
