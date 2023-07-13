@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap'); 
  
-    body, .footer { 
+    body { 
         font-family: 'Inter', sans-serif;
         min-height: 100vh;
-        display: grid;
-        grid-template-rows: 1fr auto;
+        display: flex;
+        flex-direction: column;
     } 
  
     h1, 
@@ -82,4 +82,8 @@
     .toggle-button:hover, 
     .toggle-button.expanded:hover { 
         background-color: #444 !important; 
+    }
+
+    .footer {
+        margin-top: auto;
     }
