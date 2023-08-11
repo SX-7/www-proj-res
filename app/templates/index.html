@@ -50,7 +50,6 @@
           <th>Suma upvote'ów</th>
           <th>Średnia ważona na podstawie komentarzy</th>
           <th>Średnia ważona na podstawie komentarzy oraz ilości upvote'ów</th>
-          <th>Kontrowersyjność</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -136,13 +135,11 @@
       for (var date in data) {
         var weightedAverage = data[date].weighted_average;
         var upvotedWeightedAverage = data[date].upvoted_weighted_average;
-        var controversy = Math.abs(weightedAverage - upvotedWeightedAverage);
 
         chartData.push({
           date: date,
           weighted_average: weightedAverage,
           upvoted_weighted_average: upvotedWeightedAverage,
-          controversy: controversy
         });
       }
 
@@ -153,10 +150,9 @@
       var dates = data.map(item => item.date);
       var weightedAverage = data.map(item => item.weighted_average);
       var upvotedWeightedAverage = data.map(item => item.upvoted_weighted_average);
-      var controversy = data.map(item => item.controversy);
 
-      var max_y = Math.max(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
-      var min_y = Math.min(...upvotedWeightedAverage, ...weightedAverage, ...controversy);
+      var max_y = Math.max(...upvotedWeightedAverage, ...weightedAverage);
+      var min_y = Math.min(...upvotedWeightedAverage, ...weightedAverage);
       var step = (max_y - min_y) / 20;
 
       var chartData = [
@@ -172,13 +168,6 @@
           y: upvotedWeightedAverage,
           type: 'line',
           name: 'Średnia ważona na podstawie komentarzy oraz ilości upvote\'ów',
-          hovertemplate: '%{y:.3f}',
-        },
-        {
-          x: dates,
-          y: controversy,
-          type: 'line',
-          name: 'Kontrowersyjność',
           hovertemplate: '%{y:.3f}',
         }
       ];
@@ -252,7 +241,6 @@
 
       for (var date in data) {
         var row = document.createElement("tr");
-        var controversy = Math.abs(data[date].weighted_average - data[date].upvoted_weighted_average);
         row.innerHTML = `
           <td>${date}</td>
           <td>${data[date].filtered_post_total}</td>
@@ -260,7 +248,6 @@
           <td>${data[date].upvote_total}</td>
           <td>${data[date].weighted_average.toFixed(3)}</td>
           <td>${data[date].upvoted_weighted_average.toFixed(3)}</td>
-          <td>${controversy.toFixed(3)}</td>
         `;
         dataTable.appendChild(row);
       }
